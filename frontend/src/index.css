@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html[dir="rtl"], html.rtl {
+    font-family: 'IBM Plex Sans Arabic', 'Noto Naskh Arabic', sans-serif;
+  }
+
+  body {
+    @apply bg-tfa-gray-50 text-tfa-gray-900;
+  }
+
+  /* RTL-aware margin/padding utilities */
+  .ms-1 { margin-inline-start: 0.25rem; }
+  .ms-2 { margin-inline-start: 0.5rem; }
+  .ms-3 { margin-inline-start: 0.75rem; }
+  .me-1 { margin-inline-end: 0.25rem; }
+  .me-2 { margin-inline-end: 0.5rem; }
+}
+
+@layer utilities {
+  .font-arabic {
+    font-family: 'IBM Plex Sans Arabic', 'Noto Naskh Arabic', sans-serif;
+  }
+}

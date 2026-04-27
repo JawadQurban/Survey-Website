@@ -1,0 +1,49 @@
+# Claude Code local settings
+.claude/
+
+# Survey data (internal — do not commit)
+*.xlsx
+*.xls
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.egg
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.bandit
+
+# Environment files — NEVER commit these
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Node.js
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Alembic — versions are committed, but __pycache__ is not
+backend/migrations/versions/__pycache__/
+
+# Logs
+*.log
+logs/
+
+# Docker
+*.override.yml

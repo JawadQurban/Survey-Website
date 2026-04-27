@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <!-- TFA logo placeholder — replace with the official fa.gov.sa SVG logo -->
+  <rect width="200" height="60" rx="4" fill="#1B3A6B"/>
+  <text x="12" y="38" font-family="IBM Plex Sans, sans-serif" font-size="18" font-weight="700" fill="white">TFA</text>
+  <text x="55" y="38" font-family="IBM Plex Sans, sans-serif" font-size="10" fill="white" opacity="0.8">الأكاديمية المالية</text>
+  <rect x="48" y="10" width="1" height="40" fill="white" opacity="0.3"/>
+</svg>
