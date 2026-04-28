@@ -2,11 +2,10 @@ services:
   mysql:
     image: mysql:8.0
     restart: unless-stopped
+    env_file:
+      - ./backend/.env
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-tfa_survey}
-      MYSQL_USER: ${MYSQL_USER:-tfa_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-tfa_pass}
     volumes:
       - mysql_data:/var/lib/mysql
     command: >
