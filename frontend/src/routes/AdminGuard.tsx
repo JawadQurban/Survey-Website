@@ -7,7 +7,7 @@ import { PageSpinner } from '@/components/ui/Spinner'
 import type { AdminUser } from '@/types/admin'
 
 export function AdminGuard() {
-  const { admin, setAdmin, isAuthenticated } = useAuthStore()
+  const { setAdmin, isAuthenticated } = useAuthStore()
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['admin-me'],

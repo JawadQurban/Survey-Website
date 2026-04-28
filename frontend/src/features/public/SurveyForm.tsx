@@ -19,7 +19,7 @@ export function SurveyForm() {
   const { surveySlug } = useParams<{ surveySlug: string }>()
   const navigate = useNavigate()
   const { language } = useLanguageStore()
-  const { answers, setAnswer, currentSectionIndex, setSection, markSaved, isDirty, getAllAnswers, surveySlug: sessionSlug } = useSurveyStore()
+  const { answers, setAnswer, currentSectionIndex, setSection, markSaved, isDirty, getAllAnswers } = useSurveyStore()
   const autosaveTimer = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const { data, isLoading, isError } = useQuery({

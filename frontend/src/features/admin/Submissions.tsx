@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
-import { Card, CardBody, CardHeader } from '@/components/ui/Card'
 import { Badge, statusBadgeVariant } from '@/components/ui/Badge'
 import { PageSpinner } from '@/components/ui/Spinner'
 import { adminApi } from '@/lib/api'
