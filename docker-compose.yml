@@ -7,8 +7,6 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-tfa_survey}
       MYSQL_USER: ${MYSQL_USER:-tfa_user}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-tfa_pass}
-    ports:
-      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     command: >
@@ -24,8 +22,6 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -43,16 +39,13 @@ services:
       MYSQL_HOST: mysql
       MYSQL_PORT: 3306
       REDIS_URL: redis://redis:6379/0
-      FRONTEND_URL: http://localhost:80
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./04262027_TFA Strategy Refresh_Questionnaire Training Landscape Study_v3.xlsx:/app/survey_data.xlsx:ro
 
   frontend:
     build:
@@ -60,7 +53,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "127.0.0.1:3001:80"
     depends_on:
       - backend
 
