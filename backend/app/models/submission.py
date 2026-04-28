@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from sqlalchemy import (
-    BigInteger, DateTime, Enum, ForeignKey, Index, JSON, String, Text, UniqueConstraint,
+    BigInteger, DateTime, ForeignKey, Index, JSON, String, Text, UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
@@ -32,7 +32,7 @@ class Submission(Base):
     respondent_role: Mapped[str] = mapped_column(String(16), nullable=False)
     respondent_email: Mapped[str] = mapped_column(String(255), nullable=False)
     language_used: Mapped[str] = mapped_column(String(8), default="en")
-    status: Mapped[SubmissionStatus] = mapped_column(Enum(SubmissionStatus), default=SubmissionStatus.DRAFT)
+    status: Mapped[SubmissionStatus] = mapped_column(String(16), default=SubmissionStatus.DRAFT)
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)

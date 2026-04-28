@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from sqlalchemy import (
-    BigInteger, Boolean, DateTime, Enum, ForeignKey,
+    BigInteger, Boolean, DateTime, ForeignKey,
     Index, Integer, JSON, String, Text, UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -100,7 +100,7 @@ class Question(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     section_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("survey_sections.id", ondelete="CASCADE"))
     question_key: Mapped[str] = mapped_column(String(64), nullable=False)
-    question_type: Mapped[QuestionType] = mapped_column(Enum(QuestionType), nullable=False)
+    question_type: Mapped[QuestionType] = mapped_column(String(32), nullable=False)
     display_order: Mapped[int] = mapped_column(Integer, default=0)
     is_required: Mapped[bool] = mapped_column(Boolean, default=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -168,7 +168,7 @@ class QuestionVisibilityRule(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     question_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("questions.id", ondelete="CASCADE"))
-    role: Mapped[RespondentRole] = mapped_column(Enum(RespondentRole), nullable=False)
+    role: Mapped[RespondentRole] = mapped_column(String(16), nullable=False)
 
     question: Mapped["Question"] = relationship(back_populates="visibility_rules")
 
