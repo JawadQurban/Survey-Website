@@ -29,7 +29,21 @@ def list_submissions(
     submissions, total = repo.list_with_filters(
         org_id=org_id, survey_id=survey_id, role=role, status=status_filter, skip=skip, limit=limit
     )
-    return {"total": total, "items": submissions}
+    items = [
+        {
+            "id": s.id,
+            "organization_id": s.organization_id,
+            "organization_name": s.organization.name_en if s.organization else "",
+            "survey_id": s.survey_id,
+            "respondent_role": s.respondent_role,
+            "respondent_email": s.respondent_email,
+            "status": str(s.status),
+            "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
+            "created_at": s.created_at.isoformat(),
+        }
+        for s in submissions
+    ]
+    return {"total": total, "items": items}
 
 
 @router.get("/{submission_id}", response_model=SubmissionOut)
