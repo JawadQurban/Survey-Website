@@ -36,10 +36,10 @@ export function VerifyEmail() {
   })
 
   return (
-    <div className="max-w-md mx-auto animate-slide-up">
+    <div className="max-w-md mx-auto animate-fade-in">
       <Card>
         <CardHeader>
-          <h2 className="text-xl font-semibold text-tfa-navy">
+          <h2 className="text-xl font-semibold text-tfa-gray-800">
             {t('verify.title', language)}
           </h2>
           <p className="text-sm text-tfa-gray-500 mt-1">

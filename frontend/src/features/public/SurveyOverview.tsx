@@ -30,10 +30,10 @@ export function SurveyOverviewPage() {
   const overview = data.data as SurveyOverview
 
   return (
-    <div className="max-w-2xl mx-auto animate-slide-up">
+    <div className="max-w-2xl mx-auto animate-fade-in">
       <Card>
         <CardHeader>
-          <h1 className="text-2xl font-bold text-tfa-navy">{overview.title}</h1>
+          <h1 className="text-2xl font-bold text-tfa-gray-800">{overview.title}</h1>
         </CardHeader>
 
         <CardBody className="space-y-5">
@@ -46,7 +46,7 @@ export function SurveyOverviewPage() {
               <p className="text-xs text-tfa-gray-400 font-medium uppercase tracking-wide mb-1">
                 {t('survey.overview.role', language)}
               </p>
-              <p className="text-sm font-semibold text-tfa-navy">
+              <p className="text-sm font-semibold text-tfa-gray-800">
                 {respondentRole ? t(ROLE_KEY_MAP[respondentRole] ?? 'role.ceo', language) : '—'}
               </p>
             </div>
@@ -54,7 +54,7 @@ export function SurveyOverviewPage() {
               <p className="text-xs text-tfa-gray-400 font-medium uppercase tracking-wide mb-1">
                 {t('survey.overview.org', language)}
               </p>
-              <p className="text-sm font-semibold text-tfa-navy">{organizationName ?? '—'}</p>
+              <p className="text-sm font-semibold text-tfa-gray-800">{organizationName ?? '—'}</p>
             </div>
           </div>
 

@@ -67,7 +67,7 @@ export function Contacts() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-tfa-navy">Contacts</h1>
+          <h1 className="text-2xl font-bold text-tfa-gray-800">Contacts</h1>
           <p className="text-sm text-tfa-gray-500 mt-1">{contacts.length} invited respondents</p>
         </div>
         <Button onClick={() => setShowForm(true)}>
@@ -78,7 +78,7 @@ export function Contacts() {
 
       {showForm && (
         <Card>
-          <CardHeader><h2 className="font-semibold text-tfa-navy">New Contact</h2></CardHeader>
+          <CardHeader><h2 className="font-semibold text-tfa-gray-800">New Contact</h2></CardHeader>
           <CardBody>
             {formError && (
               <div className="mb-4 text-sm text-red-600 bg-red-50 rounded-lg p-3">{formError}</div>

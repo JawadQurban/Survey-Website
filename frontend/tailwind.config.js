@@ -4,25 +4,23 @@ export default {
   theme: {
     extend: {
       colors: {
-        // The Financial Academy brand palette (from fa.gov.sa)
         tfa: {
+          // Brand navy — sidebar and header
           navy: '#1B3A6B',
           'navy-dark': '#122A50',
           'navy-light': '#2D5294',
-          gold: '#C9A227',
-          'gold-light': '#E0B93A',
-          'gold-dark': '#A8861F',
+          // Bootstrap 5 standard neutral gray scale
           gray: {
-            50: '#F8F9FC',
-            100: '#F0F4FF',
-            200: '#E4EAF5',
-            300: '#C8D2E8',
-            400: '#8A96B2',
-            500: '#5E6B87',
-            600: '#3D4A66',
-            700: '#2B3550',
-            800: '#1E2840',
-            900: '#0F1520',
+            50:  '#f8f9fa',
+            100: '#e9ecef',
+            200: '#dee2e6',
+            300: '#ced4da',
+            400: '#adb5bd',
+            500: '#6c757d',
+            600: '#495057',
+            700: '#343a40',
+            800: '#212529',
+            900: '#0d0f12',
           },
         },
       },
@@ -31,17 +29,14 @@ export default {
         arabic: ['IBM Plex Sans Arabic', 'Noto Naskh Arabic', 'Arabic', 'sans-serif'],
       },
       boxShadow: {
-        card: '0 2px 12px rgba(27, 58, 107, 0.08)',
-        'card-hover': '0 6px 24px rgba(27, 58, 107, 0.14)',
-        modal: '0 20px 60px rgba(0, 0, 0, 0.2)',
+        card: '0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)',
+        modal: '0 8px 32px rgba(0,0,0,0.12)',
       },
       animation: {
-        'fade-in': 'fadeIn 0.2s ease-out',
-        'slide-up': 'slideUp 0.3s ease-out',
+        'fade-in': 'fadeIn 0.15s ease-out',
       },
       keyframes: {
         fadeIn: { from: { opacity: '0' }, to: { opacity: '1' } },
-        slideUp: { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
       },
     },
   },

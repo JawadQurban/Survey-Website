@@ -27,14 +27,16 @@ export function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-tfa-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <img src="/logo.svg" alt="TFA" className="h-12 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-tfa-navy">Admin Portal</h1>
-          <p className="text-sm text-tfa-gray-500 mt-1">The Financial Academy Survey Platform</p>
+      <div className="w-full max-w-sm">
+        <div className="bg-tfa-navy px-6 py-5 rounded-t flex items-center gap-3">
+          <img src="/logo.svg" alt="TFA" className="h-8 w-auto brightness-0 invert" />
+          <div>
+            <p className="text-white font-semibold text-sm leading-tight">Admin Portal</p>
+            <p className="text-white/60 text-xs">The Financial Academy</p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-tfa-gray-200 shadow-card p-8">
+        <div className="bg-white border border-tfa-gray-200 border-t-0 rounded-b px-6 py-6 shadow-card">
           {error && <Alert variant="error" className="mb-4">{error}</Alert>}
 
           <form
@@ -43,7 +45,7 @@ export function AdminLogin() {
               setError('')
               loginMutation.mutate()
             }}
-            className="space-y-5"
+            className="space-y-4"
           >
             <Input
               label="Email"
@@ -52,6 +54,7 @@ export function AdminLogin() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoFocus
+              placeholder="admin@fa.gov.sa"
             />
             <Input
               label="Password"
@@ -59,8 +62,9 @@ export function AdminLogin() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              placeholder="••••••••"
             />
-            <Button type="submit" className="w-full" loading={loginMutation.isPending}>
+            <Button type="submit" className="w-full mt-2" loading={loginMutation.isPending}>
               Sign In
             </Button>
           </form>

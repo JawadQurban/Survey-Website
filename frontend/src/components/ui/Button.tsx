@@ -9,19 +9,19 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses = {
   primary:
-    'bg-tfa-navy text-white hover:bg-tfa-navy-dark focus:ring-tfa-navy disabled:bg-tfa-gray-300',
+    'bg-tfa-navy text-white hover:bg-tfa-navy-dark focus:ring-tfa-navy disabled:bg-tfa-gray-400',
   secondary:
-    'bg-white text-tfa-navy border border-tfa-navy hover:bg-tfa-gray-100 focus:ring-tfa-navy',
+    'bg-white text-tfa-gray-700 border border-tfa-gray-300 hover:bg-tfa-gray-50 focus:ring-tfa-gray-400',
   ghost:
-    'bg-transparent text-tfa-navy hover:bg-tfa-gray-100 focus:ring-tfa-navy',
+    'bg-transparent text-tfa-gray-600 hover:bg-tfa-gray-100 hover:text-tfa-gray-800 focus:ring-tfa-gray-300',
   danger:
-    'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+    'bg-red-600 text-white hover:bg-red-700 focus:ring-red-400',
 }
 
 const sizeClasses = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-5 py-2.5 text-sm',
-  lg: 'px-6 py-3 text-base',
+  sm: 'px-3 py-1.5 text-sm gap-1.5',
+  md: 'px-4 py-2 text-sm gap-2',
+  lg: 'px-5 py-2.5 text-base gap-2',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -30,8 +30,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ref={ref}
       disabled={disabled || loading}
       className={clsx(
-        'inline-flex items-center justify-center gap-2 rounded-lg font-medium',
-        'transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
+        'inline-flex items-center justify-center font-medium rounded',
+        'transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1',
         'disabled:cursor-not-allowed disabled:opacity-60',
         variantClasses[variant],
         sizeClasses[size],

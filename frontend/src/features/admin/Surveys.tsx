@@ -54,9 +54,9 @@ function CreateSurveyModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+      <div className="relative bg-white rounded border border-tfa-gray-200 shadow-modal w-full max-w-md mx-4 p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-tfa-navy">New Survey</h2>
+          <h2 className="text-lg font-bold text-tfa-gray-800">New Survey</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-tfa-gray-100 text-tfa-gray-400">
             <X className="h-5 w-5" />
           </button>
@@ -157,7 +157,7 @@ export function Surveys() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-tfa-navy">Surveys</h1>
+          <h1 className="text-2xl font-bold text-tfa-gray-800">Surveys</h1>
           <p className="text-sm text-tfa-gray-500 mt-1">{surveys.length} surveys configured</p>
         </div>
         <Button onClick={() => setShowCreate(true)}>

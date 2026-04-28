@@ -61,7 +61,7 @@ export function Organizations() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-tfa-navy">Organizations</h1>
+          <h1 className="text-2xl font-bold text-tfa-gray-800">Organizations</h1>
           <p className="text-sm text-tfa-gray-500 mt-1">{orgs.length} total</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="gap-2">
@@ -73,7 +73,7 @@ export function Organizations() {
       {(showForm || editOrg) && (
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-tfa-navy">
+            <h2 className="font-semibold text-tfa-gray-800">
               {editOrg ? 'Edit Organization' : 'New Organization'}
             </h2>
           </CardHeader>

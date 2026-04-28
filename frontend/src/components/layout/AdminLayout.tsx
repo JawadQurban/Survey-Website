@@ -15,13 +15,13 @@ import {
 } from 'lucide-react'
 
 const navItems = [
-  { to: '/admin/dashboard', label: 'admin.nav.dashboard', icon: LayoutDashboard },
+  { to: '/admin/dashboard',    label: 'admin.nav.dashboard',    icon: LayoutDashboard },
   { to: '/admin/organizations', label: 'admin.nav.organizations', icon: Building2 },
-  { to: '/admin/contacts', label: 'admin.nav.contacts', icon: Users },
-  { to: '/admin/surveys', label: 'admin.nav.surveys', icon: ClipboardList },
-  { to: '/admin/submissions', label: 'admin.nav.submissions', icon: FileText },
-  { to: '/admin/cms', label: 'admin.nav.cms', icon: Layers },
-  { to: '/admin/settings', label: 'admin.nav.settings', icon: Settings },
+  { to: '/admin/contacts',     label: 'admin.nav.contacts',     icon: Users },
+  { to: '/admin/surveys',      label: 'admin.nav.surveys',      icon: ClipboardList },
+  { to: '/admin/submissions',  label: 'admin.nav.submissions',  icon: FileText },
+  { to: '/admin/cms',          label: 'admin.nav.cms',          icon: Layers },
+  { to: '/admin/settings',     label: 'admin.nav.settings',     icon: Settings },
 ]
 
 export function AdminLayout() {
@@ -38,22 +38,22 @@ export function AdminLayout() {
   return (
     <div className="flex min-h-screen bg-tfa-gray-50">
       {/* Sidebar */}
-      <aside className="w-60 bg-tfa-navy text-white flex flex-col shrink-0">
-        <div className="px-5 py-5 border-b border-white/10">
-          <img src="/logo.svg" alt="TFA" className="h-8 w-auto brightness-0 invert" />
-          <p className="text-xs text-white/60 mt-1">Survey Platform</p>
+      <aside className="w-56 bg-tfa-navy text-white flex flex-col shrink-0">
+        <div className="px-4 py-4 border-b border-white/10">
+          <img src="/logo.svg" alt="TFA" className="h-7 w-auto brightness-0 invert" />
+          <p className="text-xs text-white/50 mt-1.5 font-medium tracking-wide uppercase">Survey Platform</p>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
+        <nav className="flex-1 px-2 py-3 space-y-0.5">
           {navItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                `flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors ${
                   isActive
-                    ? 'bg-white/20 text-white font-medium'
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                    ? 'bg-white/15 text-white font-medium'
+                    : 'text-white/65 hover:bg-white/8 hover:text-white/90'
                 }`
               }
             >
@@ -63,11 +63,11 @@ export function AdminLayout() {
           ))}
         </nav>
 
-        <div className="px-3 py-4 border-t border-white/10">
-          <div className="px-3 py-2 text-xs text-white/50 mb-2">{admin?.email}</div>
+        <div className="px-2 py-3 border-t border-white/10">
+          <p className="px-3 py-1 text-xs text-white/40 truncate mb-1">{admin?.email}</p>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+            className="flex items-center gap-2.5 px-3 py-2 w-full rounded text-sm text-white/60 hover:bg-white/8 hover:text-white/90 transition-colors"
           >
             <LogOut className="h-4 w-4" />
             {t('admin.nav.logout', language)}
@@ -75,7 +75,7 @@ export function AdminLayout() {
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         <main className="flex-1 p-6 lg:p-8">
           <Outlet />

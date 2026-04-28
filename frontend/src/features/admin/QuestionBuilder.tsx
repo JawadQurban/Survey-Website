@@ -236,7 +236,7 @@ export function QuestionBuilder() {
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-tfa-navy">Question Editor</h1>
+          <h1 className="text-2xl font-bold text-tfa-gray-800">Question Editor</h1>
           <p className="text-sm text-tfa-gray-500">
             {titleEn} · {survey.sections?.length ?? 0} sections · {totalQuestions} questions
           </p>
@@ -250,7 +250,7 @@ export function QuestionBuilder() {
           const isAddingHere = addingToSection === section.id
 
           return (
-            <div key={section.id} className="border border-tfa-gray-200 rounded-xl overflow-hidden">
+            <div key={section.id} className="border border-tfa-gray-200 rounded overflow-hidden">
               {/* Section header */}
               <div className="w-full flex items-center justify-between px-5 py-4 bg-tfa-gray-50">
                 <button
@@ -473,12 +473,12 @@ export function QuestionBuilder() {
         {!addingSection ? (
           <button
             onClick={() => setAddingSection(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-tfa-gray-200 rounded-xl text-sm text-tfa-gray-400 hover:border-tfa-navy hover:text-tfa-navy transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-tfa-gray-200 rounded text-sm text-tfa-gray-400 hover:border-tfa-navy hover:text-tfa-navy transition-colors"
           >
             <Plus className="h-4 w-4" /> Add Section
           </button>
         ) : (
-          <div className="border border-tfa-navy/20 rounded-xl px-5 py-4 bg-tfa-gray-50 space-y-3">
+          <div className="border border-tfa-navy/20 rounded px-5 py-4 bg-tfa-gray-50 space-y-3">
             <p className="text-xs font-semibold text-tfa-navy uppercase tracking-wide">New Section</p>
             <div className="flex gap-3">
               <div className="flex-1">

@@ -48,9 +48,9 @@ export function SurveyReview() {
   const sections = survey?.sections ?? []
 
   return (
-    <div className="max-w-2xl mx-auto animate-slide-up space-y-4">
+    <div className="max-w-2xl mx-auto animate-fade-in space-y-4">
       <div>
-        <h1 className="text-2xl font-bold text-tfa-navy">{t('review.title', language)}</h1>
+        <h1 className="text-2xl font-bold text-tfa-gray-800">{t('review.title', language)}</h1>
         <p className="text-tfa-gray-500 text-sm mt-1">{t('review.description', language)}</p>
       </div>
 
@@ -67,7 +67,7 @@ export function SurveyReview() {
         return (
           <Card key={section.id}>
             <CardHeader>
-              <h3 className="font-semibold text-tfa-navy">{sectionTrans?.title}</h3>
+              <h3 className="font-semibold text-tfa-gray-800">{sectionTrans?.title}</h3>
             </CardHeader>
             <CardBody className="space-y-4">
               {sectionAnsweredQuestions.map((q) => {

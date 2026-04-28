@@ -13,12 +13,10 @@ interface StatCardProps {
 
 function StatCard({ label, value, sub, accent }: StatCardProps) {
   return (
-    <Card className={accent ? 'border-tfa-navy' : ''}>
+    <Card className={accent ? 'border-l-4 border-l-tfa-navy' : ''}>
       <CardBody>
-        <p className="text-sm text-tfa-gray-500 font-medium">{label}</p>
-        <p className={`text-3xl font-bold mt-1 ${accent ? 'text-tfa-navy' : 'text-tfa-gray-900'}`}>
-          {value}
-        </p>
+        <p className="text-xs text-tfa-gray-500 font-medium uppercase tracking-wide">{label}</p>
+        <p className="text-3xl font-bold mt-1 text-tfa-gray-800">{value}</p>
         {sub && <p className="text-xs text-tfa-gray-400 mt-1">{sub}</p>}
       </CardBody>
     </Card>
@@ -45,8 +43,8 @@ export function Dashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-tfa-navy">Dashboard</h1>
-        <p className="text-sm text-tfa-gray-500 mt-1">Survey platform overview</p>
+        <h1 className="text-2xl font-bold text-tfa-gray-800">Dashboard</h1>
+        <p className="text-sm text-tfa-gray-500 mt-0.5">Survey platform overview</p>
       </div>
 
       {/* Top stats */}
@@ -66,7 +64,7 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardBody>
-            <h2 className="font-semibold text-tfa-gray-800 mb-4">Submission Status</h2>
+            <h2 className="font-semibold text-tfa-gray-700 mb-4">Submission Status</h2>
             <div className="space-y-3">
               {[
                 { label: 'Submitted', value: d?.submissions?.submitted ?? 0, color: 'bg-green-500' },
@@ -92,7 +90,7 @@ export function Dashboard() {
 
         <Card>
           <CardBody>
-            <h2 className="font-semibold text-tfa-gray-800 mb-4">Completion by Role</h2>
+            <h2 className="font-semibold text-tfa-gray-700 mb-4">Completion by Role</h2>
             <div className="space-y-3">
               {Object.entries(d?.role_completion ?? {}).map(([role, counts]) => {
                 const { completed, total } = counts as { completed: number; total: number }

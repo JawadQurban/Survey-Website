@@ -9,14 +9,14 @@ export function ThankYou() {
   const { language, isRTL } = useLanguageStore()
 
   return (
-    <div className="max-w-md mx-auto text-center py-12 animate-slide-up">
+    <div className="max-w-md mx-auto text-center py-12 animate-fade-in">
       <div className="flex justify-center mb-6">
         <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center">
           <CheckCircle className="h-10 w-10 text-green-600" />
         </div>
       </div>
 
-      <h1 className="text-3xl font-bold text-tfa-navy mb-3">
+      <h1 className="text-3xl font-bold text-tfa-gray-800 mb-3">
         {t('thankyou.title', language)}
       </h1>
       <p className="text-tfa-gray-500 leading-relaxed mb-6">
@@ -28,7 +28,7 @@ export function ThankYou() {
           <span className="text-xs text-tfa-gray-400 font-medium uppercase tracking-wide">
             {t('thankyou.ref', language)}:
           </span>
-          <span className="ms-2 text-sm font-mono font-semibold text-tfa-navy">#{ref}</span>
+          <span className="ms-2 text-sm font-mono font-semibold text-tfa-gray-800">#{ref}</span>
         </div>
       )}
 

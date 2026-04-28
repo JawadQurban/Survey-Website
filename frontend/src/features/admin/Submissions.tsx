@@ -52,7 +52,7 @@ function SubmissionPanel({
       <div className="relative bg-white w-full max-w-2xl h-full overflow-y-auto shadow-2xl flex flex-col">
         <div className="sticky top-0 bg-white border-b border-tfa-gray-200 px-6 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-tfa-navy">Submission #{submission.id}</h2>
+            <h2 className="text-lg font-bold text-tfa-gray-800">Submission #{submission.id}</h2>
             <p className="text-sm text-tfa-gray-500">
               {submission.organization_name} · {ROLE_LABELS[submission.respondent_role] ?? submission.respondent_role} · {submission.respondent_email}
             </p>
@@ -89,7 +89,7 @@ function SubmissionPanel({
                     <p className="text-xs text-tfa-gray-400 mb-1">Q{idx + 1}</p>
                     <p className="text-sm font-medium text-tfa-gray-900 mb-2">{qText}</p>
                     {answerDisplay ? (
-                      <p className="text-sm text-tfa-navy bg-tfa-gray-50 rounded px-3 py-2">{answerDisplay}</p>
+                      <p className="text-sm text-tfa-gray-800 bg-tfa-gray-50 rounded px-3 py-2">{answerDisplay}</p>
                     ) : (
                       <p className="text-xs text-tfa-gray-300 italic">No answer</p>
                     )}
@@ -141,7 +141,7 @@ export function Submissions() {
 
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-tfa-navy">Submissions</h1>
+          <h1 className="text-2xl font-bold text-tfa-gray-800">Submissions</h1>
           <p className="text-sm text-tfa-gray-500 mt-1">{result?.total ?? 0} total</p>
         </div>
         <div className="flex gap-2">

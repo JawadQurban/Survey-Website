@@ -73,13 +73,13 @@ export function SurveyForm() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto animate-slide-up">
+    <div className="max-w-2xl mx-auto animate-fade-in">
       <ProgressBar current={currentSectionIndex + 1} total={sections.length} />
 
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
-            <h2 className="text-lg font-semibold text-tfa-navy">{sectionTitle}</h2>
+            <h2 className="text-lg font-semibold text-tfa-gray-800">{sectionTitle}</h2>
             <div className="text-xs text-tfa-gray-400 whitespace-nowrap pt-1">
               {isDirty
                 ? t('survey.saving', language)

@@ -12,15 +12,15 @@ export function LandingPage() {
       {/* Hero */}
       <div className="text-center py-12 sm:py-16">
         <div className="mb-6">
-          <span className="inline-block bg-tfa-gold/20 text-tfa-gold-dark text-sm font-semibold px-4 py-1.5 rounded-full">
+          <span className="inline-block bg-tfa-navy/10 text-tfa-navy text-sm font-semibold px-4 py-1.5 rounded">
             {isRTL ? 'تحديث الاستراتيجية 2025' : 'Strategy Refresh 2025'}
           </span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-bold text-tfa-navy mb-4 leading-tight">
+        <h1 className="text-3xl sm:text-4xl font-bold text-tfa-gray-800 mb-4 leading-tight">
           {t('landing.title', language)}
         </h1>
-        <p className="text-lg text-tfa-navy/70 font-medium mb-3">
+        <p className="text-lg text-tfa-gray-600 font-medium mb-3">
           {t('landing.subtitle', language)}
         </p>
         <p className="text-tfa-gray-500 max-w-xl mx-auto leading-relaxed mb-10">
@@ -53,9 +53,9 @@ export function LandingPage() {
         ].map((item) => (
           <div
             key={item.icon}
-            className="bg-white border border-tfa-gray-200 rounded-xl p-5 text-center shadow-card"
+            className="bg-white border border-tfa-gray-200 rounded p-5 text-center shadow-card"
           >
-            <div className="text-3xl font-bold text-tfa-navy mb-1">{item.icon}</div>
+            <div className="text-3xl font-bold text-tfa-gray-800 mb-1">{item.icon}</div>
             <div className="text-sm font-semibold text-tfa-gray-700">{item.label}</div>
             <div className="text-xs text-tfa-gray-400 mt-1">{item.desc}</div>
           </div>
