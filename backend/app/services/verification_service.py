@@ -44,19 +44,19 @@ class VerificationService:
             extra={
                 "type": "survey_session",
                 "org_id": contact.organization_id,
-                "role": contact.role.value,
+                "role": str(contact.role),
                 "survey_slug": survey.slug,
             },
         )
         self.db.commit()
 
         org = contact.organization
-        logger.info("[Verify] Session created", extra={"contact_id": contact.id, "role": contact.role.value})
+        logger.info("[Verify] Session created", extra={"contact_id": contact.id, "role": contact.role})
 
         return {
             "session_token": session_token,
             "organization_id": org.id,
             "organization_name": org.name_en,
-            "respondent_role": contact.role.value,
+            "respondent_role": str(contact.role),
             "survey_slug": survey.slug,
         }
