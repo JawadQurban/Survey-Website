@@ -1,18 +1,113 @@
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Badge, statusBadgeVariant } from '@/components/ui/Badge'
 import { PageSpinner } from '@/components/ui/Spinner'
 import { adminApi } from '@/lib/api'
+import { getTranslation } from '@/lib/i18n'
 import type { PaginatedResponse, SubmissionSummary } from '@/types/admin'
-import { Download, RotateCcw } from 'lucide-react'
+import type { SubmissionOut, Survey } from '@/types/survey'
+import { Download, Eye, X } from 'lucide-react'
 
 const ROLE_LABELS: Record<string, string> = { ceo: 'CEO', chro: 'CHRO', ld: 'L&D' }
+
+function SubmissionPanel({
+  submission,
+  onClose,
+}: {
+  submission: SubmissionSummary
+  onClose: () => void
+}) {
+  const { data: detailData, isLoading: detailLoading } = useQuery({
+    queryKey: ['submission-detail', submission.id],
+    queryFn: () => adminApi.getSubmission(submission.id),
+  })
+
+  const { data: surveyData, isLoading: surveyLoading } = useQuery({
+    queryKey: ['admin-survey', submission.survey_id],
+    queryFn: () => adminApi.getSurvey(submission.survey_id),
+  })
+
+  const detail = detailData?.data as SubmissionOut
+  const survey = surveyData?.data as Survey
+
+  const questionMap = new Map<number, { text: string; options: Map<string, string> }>()
+  if (survey?.sections) {
+    for (const section of survey.sections) {
+      for (const q of section.questions ?? []) {
+        const text = getTranslation(q.translations, 'en')?.text ?? q.question_key
+        const options = new Map<string, string>()
+        for (const opt of q.options ?? []) {
+          const optText = getTranslation(opt.translations, 'en')?.text ?? opt.option_key
+          options.set(opt.option_key, optText)
+        }
+        questionMap.set(q.id, { text, options })
+      }
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-2xl h-full overflow-y-auto shadow-2xl flex flex-col">
+        <div className="sticky top-0 bg-white border-b border-tfa-gray-200 px-6 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-tfa-navy">Submission #{submission.id}</h2>
+            <p className="text-sm text-tfa-gray-500">
+              {submission.organization_name} · {ROLE_LABELS[submission.respondent_role] ?? submission.respondent_role} · {submission.respondent_email}
+            </p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-tfa-gray-100 text-tfa-gray-400">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 px-6 py-4">
+          {(detailLoading || surveyLoading) && <PageSpinner />}
+          {detail && !detailLoading && !surveyLoading && (
+            <div className="space-y-4">
+              {detail.answers.length === 0 && (
+                <p className="text-tfa-gray-400 text-sm text-center py-8">No answers recorded.</p>
+              )}
+              {detail.answers.map((answer, idx) => {
+                const qInfo = questionMap.get(answer.question_id)
+                const qText = qInfo?.text ?? `Question ${answer.question_id}`
+
+                let answerDisplay: string | null = null
+                if (answer.selected_option_keys?.length) {
+                  answerDisplay = answer.selected_option_keys
+                    .map((k) => qInfo?.options.get(k) ?? k)
+                    .join(', ')
+                } else if (answer.open_text_value) {
+                  answerDisplay = answer.open_text_value
+                } else if (answer.numeric_value != null) {
+                  answerDisplay = String(answer.numeric_value)
+                }
+
+                return (
+                  <div key={answer.id} className="border border-tfa-gray-200 rounded-lg p-4">
+                    <p className="text-xs text-tfa-gray-400 mb-1">Q{idx + 1}</p>
+                    <p className="text-sm font-medium text-tfa-gray-900 mb-2">{qText}</p>
+                    {answerDisplay ? (
+                      <p className="text-sm text-tfa-navy bg-tfa-gray-50 rounded px-3 py-2">{answerDisplay}</p>
+                    ) : (
+                      <p className="text-xs text-tfa-gray-300 italic">No answer</p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function Submissions() {
   const [roleFilter, setRoleFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  const qc = useQueryClient()
+  const [selected, setSelected] = useState<SubmissionSummary | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-submissions', roleFilter, statusFilter],
@@ -22,11 +117,6 @@ export function Submissions() {
         ...(statusFilter && { status: statusFilter }),
         limit: 100,
       }),
-  })
-
-  const reopenMutation = useMutation({
-    mutationFn: (id: number) => adminApi.reopenSubmission(id, 'Admin reopened'),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-submissions'] }),
   })
 
   const handleExport = async (format: 'csv' | 'xlsx') => {
@@ -47,6 +137,8 @@ export function Submissions() {
 
   return (
     <div className="space-y-6">
+      {selected && <SubmissionPanel submission={selected} onClose={() => setSelected(null)} />}
+
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-tfa-navy">Submissions</h1>
@@ -54,17 +146,14 @@ export function Submissions() {
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" onClick={() => handleExport('csv')}>
-            <Download className="h-4 w-4" />
-            CSV
+            <Download className="h-4 w-4" /> CSV
           </Button>
           <Button variant="secondary" size="sm" onClick={() => handleExport('xlsx')}>
-            <Download className="h-4 w-4" />
-            XLSX
+            <Download className="h-4 w-4" /> XLSX
           </Button>
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex gap-3 flex-wrap">
         <select
           className="rounded-lg border border-tfa-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
@@ -84,7 +173,6 @@ export function Submissions() {
           <option value="">All Statuses</option>
           <option value="submitted">Submitted</option>
           <option value="draft">Draft</option>
-          <option value="reopened">Reopened</option>
         </select>
       </div>
 
@@ -115,17 +203,9 @@ export function Submissions() {
                   {s.submitted_at ? new Date(s.submitted_at).toLocaleDateString() : '—'}
                 </td>
                 <td className="py-3 px-3">
-                  {s.status === 'submitted' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => reopenMutation.mutate(s.id)}
-                      loading={reopenMutation.isPending}
-                    >
-                      <RotateCcw className="h-3.5 w-3.5" />
-                      Reopen
-                    </Button>
-                  )}
+                  <Button variant="ghost" size="sm" onClick={() => setSelected(s)}>
+                    <Eye className="h-3.5 w-3.5" /> View
+                  </Button>
                 </td>
               </tr>
             ))}

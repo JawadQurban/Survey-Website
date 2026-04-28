@@ -23,6 +23,7 @@ const Organizations = lazy(() => import('@/features/admin/Organizations').then((
 const Contacts = lazy(() => import('@/features/admin/Contacts').then((m) => ({ default: m.Contacts })))
 const Surveys = lazy(() => import('@/features/admin/Surveys').then((m) => ({ default: m.Surveys })))
 const Submissions = lazy(() => import('@/features/admin/Submissions').then((m) => ({ default: m.Submissions })))
+const QuestionBuilder = lazy(() => import('@/features/admin/QuestionBuilder').then((m) => ({ default: m.QuestionBuilder })))
 
 function AppInit() {
   const { language, setLanguage } = useLanguageStore()
@@ -61,6 +62,7 @@ export default function App() {
                 <Route path="/admin/contacts" element={<Contacts />} />
                 <Route path="/admin/surveys" element={<Surveys />} />
                 <Route path="/admin/submissions" element={<Submissions />} />
+                <Route path="/admin/surveys/:surveyId/builder" element={<QuestionBuilder />} />
                 <Route path="/admin/cms" element={<div className="p-4 text-tfa-gray-500">CMS management — coming in next iteration</div>} />
                 <Route path="/admin/settings" element={<div className="p-4 text-tfa-gray-500">Settings — coming in next iteration</div>} />
               </Route>

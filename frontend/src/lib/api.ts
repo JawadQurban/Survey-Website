@@ -75,10 +75,12 @@ export const adminApi = {
   createSurvey: (data: object) => api.post('/admin/surveys', data),
   updateSurvey: (id: number, data: object) => api.put(`/admin/surveys/${id}`, data),
 
+  // Questions
+  updateQuestion: (id: number, data: object) => api.put(`/admin/questions/${id}`, data),
+
   // Submissions
   listSubmissions: (params?: object) => api.get('/admin/submissions', { params }),
-  reopenSubmission: (id: number, reason?: string) =>
-    api.post(`/admin/submissions/${id}/reopen`, { reason }),
+  getSubmission: (id: number) => api.get(`/admin/submissions/${id}`),
   exportCsv: (params?: object) =>
     api.get('/admin/submissions/export/csv', { params, responseType: 'blob' }),
   exportXlsx: (params?: object) =>
