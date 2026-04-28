@@ -52,4 +52,3 @@ class OrganizationContact(Base):
 
     organization: Mapped["Organization"] = relationship(back_populates="contacts")
     submissions: Mapped[list["Submission"]] = relationship(back_populates="contact")  # type: ignore[name-defined]
-    verification_tokens: Mapped[list["EmailVerificationToken"]] = relationship(back_populates="contact")  # type: ignore[name-defined]
