@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 from sqlalchemy import select, func
 from app.models.organization import Organization, OrganizationContact
 
@@ -56,7 +56,10 @@ class ContactRepository:
                 OrganizationContact.email == email.lower().strip(),
                 OrganizationContact.is_active == True,  # noqa: E712
             )
-            .options(joinedload(OrganizationContact.organization))
+            .options(
+                joinedload(OrganizationContact.organization),
+                selectinload(OrganizationContact.survey),
+            )
         ).scalar_one_or_none()
 
     def get_by_org(self, org_id: int) -> list[OrganizationContact]:

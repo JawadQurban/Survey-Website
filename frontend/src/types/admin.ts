@@ -26,6 +26,7 @@ export interface Contact {
   email: string
   full_name: string | null
   role: 'ceo' | 'chro' | 'ld'
+  survey_id: number | null
   is_active: boolean
   notes: string | null
   created_at: string

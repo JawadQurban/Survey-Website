@@ -38,12 +38,14 @@ class ContactCreate(BaseModel):
     email: EmailStr
     full_name: str | None = Field(None, max_length=255)
     role: RespondentRole
+    survey_id: int | None = None
     notes: str | None = None
 
 
 class ContactUpdate(BaseModel):
     full_name: str | None = Field(None, max_length=255)
     role: RespondentRole | None = None
+    survey_id: int | None = None
     is_active: bool | None = None
     notes: str | None = None
 
@@ -54,6 +56,7 @@ class ContactOut(BaseModel):
     email: str
     full_name: str | None
     role: RespondentRole
+    survey_id: int | None
     is_active: bool
     notes: str | None
     created_at: datetime

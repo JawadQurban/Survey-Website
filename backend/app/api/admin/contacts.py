@@ -44,6 +44,7 @@ def create_contact(
         email=body.email,
         full_name=body.full_name,
         role=body.role,
+        survey_id=body.survey_id,
         notes=body.notes,
     )
     AdminRepository(db).log_action(current_admin.id, "contact_created", "contact", str(contact.id))

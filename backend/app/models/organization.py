@@ -50,5 +50,8 @@ class OrganizationContact(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
 
+    survey_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("surveys.id", ondelete="SET NULL"), nullable=True)
+
     organization: Mapped["Organization"] = relationship(back_populates="contacts")
+    survey: Mapped["Survey | None"] = relationship(foreign_keys=[survey_id])  # type: ignore[name-defined]
     submissions: Mapped[list["Submission"]] = relationship(back_populates="contact")  # type: ignore[name-defined]
