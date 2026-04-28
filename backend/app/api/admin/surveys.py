@@ -50,10 +50,10 @@ def get_survey(
     _: AdminUser = Depends(get_current_admin),
 ):
     repo = SurveyRepository(db)
-    survey = repo.get_by_id(survey_id)
-    if not survey:
+    result = repo.get_full_admin(survey_id)
+    if not result:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Survey not found")
-    return repo.get_full(survey.slug)
+    return result
 
 
 @router.put("/{survey_id}", response_model=SurveyOut)

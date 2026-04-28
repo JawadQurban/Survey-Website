@@ -162,6 +162,27 @@ class SurveyRepository:
             self.db.add(QuestionVisibilityRule(question_id=question_id, role=role))
         self.db.flush()
 
+    def get_full_admin(self, survey_id: int) -> Survey | None:
+        """Load a survey with all nested data, no is_active filter — for admin use."""
+        return self.db.execute(
+            select(Survey)
+            .where(Survey.id == survey_id)
+            .options(
+                selectinload(Survey.translations),
+                selectinload(Survey.sections).options(
+                    selectinload(SurveySection.translations),
+                    selectinload(SurveySection.questions).options(
+                        selectinload(Question.translations),
+                        selectinload(Question.options).options(
+                            selectinload(QuestionOption.translations)
+                        ),
+                        selectinload(Question.visibility_rules),
+                        selectinload(Question.conditions),
+                    ),
+                ),
+            )
+        ).scalar_one_or_none()
+
     def get_questions_for_role(self, survey_slug: str, role: RespondentRole) -> list[Question]:
         survey = self.get_full(survey_slug)
         if not survey:

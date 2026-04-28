@@ -74,9 +74,16 @@ export const adminApi = {
   getSurvey: (id: number) => api.get(`/admin/surveys/${id}`),
   createSurvey: (data: object) => api.post('/admin/surveys', data),
   updateSurvey: (id: number, data: object) => api.put(`/admin/surveys/${id}`, data),
+  deleteSurvey: (id: number) => api.delete(`/admin/surveys/${id}`),
 
   // Questions
+  createQuestion: (data: object) => api.post('/admin/questions', data),
   updateQuestion: (id: number, data: object) => api.put(`/admin/questions/${id}`, data),
+  deleteQuestion: (id: number) => api.delete(`/admin/questions/${id}`),
+
+  // Sections
+  createSection: (data: object) => api.post('/admin/sections', data),
+  deleteSection: (id: number) => api.delete(`/admin/sections/${id}`),
 
   // Submissions
   listSubmissions: (params?: object) => api.get('/admin/submissions', { params }),
