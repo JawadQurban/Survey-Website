@@ -27,7 +27,7 @@ class Submission(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     organization_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("organizations.id", ondelete="CASCADE"))
-    contact_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("organization_contacts.id", ondelete="SET NULL"))
+    contact_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("organization_contacts.id", ondelete="SET NULL"), nullable=True)
     survey_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("surveys.id", ondelete="CASCADE"))
     respondent_role: Mapped[str] = mapped_column(String(16), nullable=False)
     respondent_email: Mapped[str] = mapped_column(String(255), nullable=False)

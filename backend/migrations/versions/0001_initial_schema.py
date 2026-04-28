@@ -306,7 +306,7 @@ def upgrade() -> None:
         "submissions",
         sa.Column("id", sa.BigInteger(), autoincrement=True, nullable=False),
         sa.Column("organization_id", sa.BigInteger(), nullable=False),
-        sa.Column("contact_id", sa.BigInteger(), nullable=False),
+        sa.Column("contact_id", sa.BigInteger(), nullable=True),
         sa.Column("survey_id", sa.BigInteger(), nullable=False),
         sa.Column("respondent_role", sa.String(16), nullable=False),
         sa.Column("respondent_email", sa.String(255), nullable=False),
