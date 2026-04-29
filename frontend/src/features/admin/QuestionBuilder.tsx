@@ -43,11 +43,12 @@ interface OptionDraft {
 }
 
 interface EditForm {
-  text_en:    string
-  text_ar:    string
-  roles:      string[]
-  newOptEn:   string
-  newOptAr:   string
+  text_en:       string
+  text_ar:       string
+  question_type: QuestionType
+  roles:         string[]
+  newOptEn:      string
+  newOptAr:      string
 }
 
 interface NewQForm {
@@ -78,7 +79,7 @@ export function QuestionBuilder() {
   const qc = useQueryClient()
 
   const [editingId,  setEditingId]  = useState<number | null>(null)
-  const [editForm,   setEditForm]   = useState<EditForm>({ text_en: '', text_ar: '', roles: [], newOptEn: '', newOptAr: '' })
+  const [editForm,   setEditForm]   = useState<EditForm>({ text_en: '', text_ar: '', question_type: 'open_text', roles: [], newOptEn: '', newOptAr: '' })
   const [showAddForm, setShowAddForm] = useState(false)
   const [newQForm,   setNewQForm]   = useState<NewQForm>(EMPTY_NEW_Q)
 
@@ -127,11 +128,12 @@ export function QuestionBuilder() {
   const startEdit = (q: Question) => {
     setEditingId(q.id)
     setEditForm({
-      text_en:  getTranslation(q.translations, 'en')?.text ?? '',
-      text_ar:  getTranslation(q.translations, 'ar')?.text ?? '',
-      roles:    q.visibility_rules.map((r) => r.role),
-      newOptEn: '',
-      newOptAr: '',
+      text_en:       getTranslation(q.translations, 'en')?.text ?? '',
+      text_ar:       getTranslation(q.translations, 'ar')?.text ?? '',
+      question_type: q.question_type,
+      roles:         q.visibility_rules.map((r) => r.role),
+      newOptEn:      '',
+      newOptAr:      '',
     })
   }
 
@@ -153,7 +155,7 @@ export function QuestionBuilder() {
       payload: {
         section_id:            q.section_id,
         question_key:          q.question_key,
-        question_type:         q.question_type,
+        question_type:         editForm.question_type,
         display_order:         q.display_order,
         is_required:           q.is_required,
         has_open_text_option:  q.has_open_text_option,
@@ -291,8 +293,8 @@ export function QuestionBuilder() {
         {allQuestions.map((q, idx) => {
           const textEn    = getTranslation(q.translations, 'en')?.text ?? ''
           const textAr    = getTranslation(q.translations, 'ar')?.text ?? ''
-          const isEditing = editingId === q.id
-          const choiceQ   = isChoice(q.question_type)
+          const isEditing    = editingId === q.id
+          const choiceQ      = isEditing ? isChoice(editForm.question_type) : isChoice(q.question_type)
 
           return (
             <div key={q.id} className="px-5 py-4">
@@ -340,6 +342,20 @@ export function QuestionBuilder() {
               ) : (
                 /* — Edit mode — */
                 <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-tfa-gray-500 uppercase tracking-wide mb-1 block">
+                      Question Type
+                    </label>
+                    <select
+                      className="w-56 rounded-lg border border-tfa-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
+                      value={editForm.question_type}
+                      onChange={(e) => setEditForm((f) => ({ ...f, question_type: e.target.value as QuestionType }))}
+                    >
+                      {QUESTION_TYPES.map((qt) => (
+                        <option key={qt.value} value={qt.value}>{qt.label}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs font-semibold text-tfa-gray-500 uppercase tracking-wide mb-1 block">

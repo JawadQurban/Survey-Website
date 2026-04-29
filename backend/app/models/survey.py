@@ -121,7 +121,7 @@ class Question(Base):
         foreign_keys="QuestionCondition.question_id",
         cascade="all, delete-orphan",
     )
-    answers: Mapped[list["Answer"]] = relationship(back_populates="question")  # type: ignore[name-defined]
+    answers: Mapped[list["Answer"]] = relationship(back_populates="question", passive_deletes=True)  # type: ignore[name-defined]
 
 
 class QuestionTranslation(Base):
