@@ -20,8 +20,6 @@ const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
   { value: 'multiple_choice', label: 'Multiple Choice' },
   { value: 'open_text',       label: 'Open Text'       },
   { value: 'textarea',        label: 'Text Area'       },
-  { value: 'number',          label: 'Number'          },
-  { value: 'rating',          label: 'Rating'          },
 ]
 
 const TYPE_LABELS: Record<string, string> = {
@@ -29,8 +27,6 @@ const TYPE_LABELS: Record<string, string> = {
   multiple_choice: 'Multi',
   open_text:       'Open Text',
   textarea:        'Text Area',
-  number:          'Number',
-  rating:          'Rating',
 }
 
 const isChoice = (type: QuestionType) =>
@@ -43,34 +39,43 @@ interface OptionDraft {
 }
 
 interface EditForm {
-  text_en:       string
-  text_ar:       string
-  question_type: QuestionType
-  roles:         string[]
-  newOptEn:      string
-  newOptAr:      string
+  text_en:              string
+  text_ar:              string
+  question_type:        QuestionType
+  roles:                string[]
+  has_open_text_option: boolean
+  open_text_label_en:   string
+  open_text_label_ar:   string
+  newOptEn:             string
+  newOptAr:             string
 }
 
 interface NewQForm {
-  key:       string
-  type:      QuestionType
-  text_en:   string
-  text_ar:   string
-  roles:     string[]
-  options:   OptionDraft[]
-  newOptEn:  string
-  newOptAr:  string
+  key:                  string
+  type:                 QuestionType
+  text_en:              string
+  text_ar:              string
+  roles:                string[]
+  options:              OptionDraft[]
+  has_open_text_option: boolean
+  open_text_label_en:   string
+  open_text_label_ar:   string
+  newOptEn:             string
+  newOptAr:             string
 }
 
 const EMPTY_NEW_Q: NewQForm = {
-  key:      '',
-  type:     'open_text',
-  text_en:  '',
-  text_ar:  '',
-  roles:    ['ceo', 'chro', 'ld'],
-  options:  [],
-  newOptEn: '',
-  newOptAr: '',
+  key:                  '',
+  type:                 'open_text',
+  text_en:              '',
+  text_ar:              '',
+  roles:                ['ceo', 'chro', 'ld'],
+  options:              [],
+  has_open_text_option: false,
+  open_text_label_en:   '',
+  open_text_label_ar:   '',
+  newOptEn:             '',
+  newOptAr:             '',
 }
 
 export function QuestionBuilder() {
@@ -79,7 +84,7 @@ export function QuestionBuilder() {
   const qc = useQueryClient()
 
   const [editingId,  setEditingId]  = useState<number | null>(null)
-  const [editForm,   setEditForm]   = useState<EditForm>({ text_en: '', text_ar: '', question_type: 'open_text', roles: [], newOptEn: '', newOptAr: '' })
+  const [editForm,   setEditForm]   = useState<EditForm>({ text_en: '', text_ar: '', question_type: 'open_text', roles: [], has_open_text_option: false, open_text_label_en: '', open_text_label_ar: '', newOptEn: '', newOptAr: '' })
   const [showAddForm, setShowAddForm] = useState(false)
   const [newQForm,   setNewQForm]   = useState<NewQForm>(EMPTY_NEW_Q)
 
@@ -128,12 +133,15 @@ export function QuestionBuilder() {
   const startEdit = (q: Question) => {
     setEditingId(q.id)
     setEditForm({
-      text_en:       getTranslation(q.translations, 'en')?.text ?? '',
-      text_ar:       getTranslation(q.translations, 'ar')?.text ?? '',
-      question_type: q.question_type,
-      roles:         q.visibility_rules.map((r) => r.role),
-      newOptEn:      '',
-      newOptAr:      '',
+      text_en:              getTranslation(q.translations, 'en')?.text ?? '',
+      text_ar:              getTranslation(q.translations, 'ar')?.text ?? '',
+      question_type:        q.question_type,
+      roles:                q.visibility_rules.map((r) => r.role),
+      has_open_text_option: q.has_open_text_option,
+      open_text_label_en:   q.open_text_label_en ?? '',
+      open_text_label_ar:   q.open_text_label_ar ?? '',
+      newOptEn:             '',
+      newOptAr:             '',
     })
   }
 
@@ -158,9 +166,9 @@ export function QuestionBuilder() {
         question_type:         editForm.question_type,
         display_order:         q.display_order,
         is_required:           q.is_required,
-        has_open_text_option:  q.has_open_text_option,
-        open_text_label_en:    q.open_text_label_en,
-        open_text_label_ar:    q.open_text_label_ar,
+        has_open_text_option:  editForm.has_open_text_option,
+        open_text_label_en:    editForm.open_text_label_en || null,
+        open_text_label_ar:    editForm.open_text_label_ar || null,
         module:                q.module,
         visible_to_roles:      editForm.roles,
         translations: [
@@ -221,7 +229,9 @@ export function QuestionBuilder() {
       question_type:        newQForm.type,
       display_order:        maxOrder + 1,
       is_required:          true,
-      has_open_text_option: false,
+      has_open_text_option: newQForm.has_open_text_option,
+      open_text_label_en:   newQForm.open_text_label_en || null,
+      open_text_label_ar:   newQForm.open_text_label_ar || null,
       visible_to_roles:     newQForm.roles,
       translations: [
         { language_code: 'en', text: newQForm.text_en.trim() },
@@ -450,6 +460,36 @@ export function QuestionBuilder() {
                           <Plus className="h-3.5 w-3.5" /> Add
                         </Button>
                       </div>
+
+                      {/* "Other / open text" option toggle */}
+                      <div className="pt-2 border-t border-tfa-gray-100 space-y-2">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={editForm.has_open_text_option}
+                            onChange={(e) => setEditForm((f) => ({ ...f, has_open_text_option: e.target.checked }))}
+                            className="h-4 w-4 rounded border-tfa-gray-300 text-tfa-navy"
+                          />
+                          <span className="text-sm text-tfa-gray-700 font-medium">Add "Other (please specify)" option</span>
+                        </label>
+                        {editForm.has_open_text_option && (
+                          <div className="flex gap-2 pl-6">
+                            <input
+                              className="flex-1 rounded-lg border border-tfa-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
+                              placeholder='Label in English (e.g. "Other")'
+                              value={editForm.open_text_label_en}
+                              onChange={(e) => setEditForm((f) => ({ ...f, open_text_label_en: e.target.value }))}
+                            />
+                            <input
+                              className="flex-1 rounded-lg border border-tfa-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
+                              placeholder='التسمية بالعربية (مثل "أخرى")'
+                              dir="rtl"
+                              value={editForm.open_text_label_ar}
+                              onChange={(e) => setEditForm((f) => ({ ...f, open_text_label_ar: e.target.value }))}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 
@@ -578,6 +618,36 @@ export function QuestionBuilder() {
                 <Button size="sm" variant="secondary" onClick={handleAddNewOption}>
                   <Plus className="h-3.5 w-3.5" /> Add
                 </Button>
+              </div>
+
+              {/* "Other / open text" option toggle */}
+              <div className="pt-2 border-t border-tfa-gray-100 space-y-2">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={newQForm.has_open_text_option}
+                    onChange={(e) => setNewQForm((f) => ({ ...f, has_open_text_option: e.target.checked }))}
+                    className="h-4 w-4 rounded border-tfa-gray-300 text-tfa-navy"
+                  />
+                  <span className="text-sm text-tfa-gray-700 font-medium">Add "Other (please specify)" option</span>
+                </label>
+                {newQForm.has_open_text_option && (
+                  <div className="flex gap-2 pl-6">
+                    <input
+                      className="flex-1 rounded-lg border border-tfa-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
+                      placeholder='Label in English (e.g. "Other")'
+                      value={newQForm.open_text_label_en}
+                      onChange={(e) => setNewQForm((f) => ({ ...f, open_text_label_en: e.target.value }))}
+                    />
+                    <input
+                      className="flex-1 rounded-lg border border-tfa-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
+                      placeholder='التسمية بالعربية (مثل "أخرى")'
+                      dir="rtl"
+                      value={newQForm.open_text_label_ar}
+                      onChange={(e) => setNewQForm((f) => ({ ...f, open_text_label_ar: e.target.value }))}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}
