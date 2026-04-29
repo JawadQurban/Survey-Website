@@ -94,6 +94,10 @@ export const adminApi = {
   updateQuestion: (id: number, data: object) => api.put(`/admin/questions/${id}`, data),
   deleteQuestion: (id: number) => api.delete(`/admin/questions/${id}`),
 
+  // Options
+  createOption: (data: object) => api.post('/admin/options', data),
+  deleteOption: (id: number) => api.delete(`/admin/options/${id}`),
+
   // Sections
   createSection: (data: object) => api.post('/admin/sections', data),
   deleteSection: (id: number) => api.delete(`/admin/sections/${id}`),

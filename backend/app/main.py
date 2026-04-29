@@ -9,7 +9,7 @@ from app.core.logging import configure_logging
 from app.core.database import check_db_connection
 
 from app.api.public import verify, surveys, submissions, begin as survey_begin
-from app.api.admin import auth, organizations, contacts, surveys as admin_surveys, questions, sections as admin_sections, submissions as admin_submissions, dashboard, cms
+from app.api.admin import auth, organizations, contacts, surveys as admin_surveys, questions, sections as admin_sections, submissions as admin_submissions, dashboard, cms, options as admin_options
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -52,6 +52,7 @@ def create_app() -> FastAPI:
     app.include_router(admin_submissions.router, prefix=admin_prefix)
     app.include_router(dashboard.router, prefix=admin_prefix)
     app.include_router(cms.router, prefix=admin_prefix)
+    app.include_router(admin_options.router, prefix=admin_prefix)
 
     @app.get("/health")
     def health():

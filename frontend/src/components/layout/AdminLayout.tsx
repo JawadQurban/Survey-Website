@@ -5,8 +5,6 @@ import { useLanguageStore } from '@/store/languageStore'
 import { t } from '@/lib/i18n'
 import {
   LayoutDashboard,
-  Building2,
-  Users,
   ClipboardList,
   FileText,
   Layers,
@@ -15,13 +13,11 @@ import {
 } from 'lucide-react'
 
 const navItems = [
-  { to: '/admin/dashboard',    label: 'admin.nav.dashboard',    icon: LayoutDashboard },
-  { to: '/admin/organizations', label: 'admin.nav.organizations', icon: Building2 },
-  { to: '/admin/contacts',     label: 'admin.nav.contacts',     icon: Users },
-  { to: '/admin/surveys',      label: 'admin.nav.surveys',      icon: ClipboardList },
-  { to: '/admin/submissions',  label: 'admin.nav.submissions',  icon: FileText },
-  { to: '/admin/cms',          label: 'admin.nav.cms',          icon: Layers },
-  { to: '/admin/settings',     label: 'admin.nav.settings',     icon: Settings },
+  { to: '/admin/dashboard',   label: 'admin.nav.dashboard',   icon: LayoutDashboard },
+  { to: '/admin/surveys',     label: 'admin.nav.surveys',     icon: ClipboardList },
+  { to: '/admin/submissions', label: 'admin.nav.submissions', icon: FileText },
+  { to: '/admin/cms',         label: 'admin.nav.cms',         icon: Layers },
+  { to: '/admin/settings',    label: 'admin.nav.settings',    icon: Settings },
 ]
 
 export function AdminLayout() {

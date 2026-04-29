@@ -86,6 +86,13 @@ class OptionTranslationOut(OptionTranslationIn):
     model_config = {"from_attributes": True}
 
 
+class OptionCreate(BaseModel):
+    question_id: int
+    option_key: str = Field(min_length=1, max_length=64)
+    display_order: int = 0
+    translations: list[OptionTranslationIn] = Field(min_length=1)
+
+
 class OptionOut(BaseModel):
     id: int
     question_id: int

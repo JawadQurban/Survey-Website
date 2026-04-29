@@ -19,8 +19,6 @@ const ThankYou = lazy(() => import('@/features/public/ThankYou').then((m) => ({ 
 
 const AdminLogin = lazy(() => import('@/features/admin/Login').then((m) => ({ default: m.AdminLogin })))
 const Dashboard = lazy(() => import('@/features/admin/Dashboard').then((m) => ({ default: m.Dashboard })))
-const Organizations = lazy(() => import('@/features/admin/Organizations').then((m) => ({ default: m.Organizations })))
-const Contacts = lazy(() => import('@/features/admin/Contacts').then((m) => ({ default: m.Contacts })))
 const Surveys = lazy(() => import('@/features/admin/Surveys').then((m) => ({ default: m.Surveys })))
 const Submissions = lazy(() => import('@/features/admin/Submissions').then((m) => ({ default: m.Submissions })))
 const QuestionBuilder = lazy(() => import('@/features/admin/QuestionBuilder').then((m) => ({ default: m.QuestionBuilder })))
@@ -59,8 +57,6 @@ export default function App() {
               <Route element={<AdminLayout />}>
                 <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="/admin/dashboard" element={<Dashboard />} />
-                <Route path="/admin/organizations" element={<Organizations />} />
-                <Route path="/admin/contacts" element={<Contacts />} />
                 <Route path="/admin/surveys" element={<Surveys />} />
                 <Route path="/admin/submissions" element={<Submissions />} />
                 <Route path="/admin/surveys/:surveyId/builder" element={<QuestionBuilder />} />
