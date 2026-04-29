@@ -126,7 +126,7 @@ def get_survey_questions(
         "section_key": "all",
         "display_order": 0,
         "is_active": True,
-        "translations": [{"id": 0, "language_code": language, "title": "", "description": None}],
+        "translations": [{"id": 0, "language_code": language, "title": "-", "description": None}],
         "questions": all_questions,
     }
 
