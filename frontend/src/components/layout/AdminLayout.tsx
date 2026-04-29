@@ -36,7 +36,7 @@ export function AdminLayout() {
       {/* Sidebar */}
       <aside className="w-56 bg-tfa-navy text-white flex flex-col shrink-0">
         <div className="px-4 py-4 border-b border-white/10">
-          <img src="/logo.svg" alt="TFA" className="h-7 w-auto brightness-0 invert" />
+          <img src="/logo.png" alt="TFA" className="h-7 w-auto" />
           <p className="text-xs text-white/50 mt-1.5 font-medium tracking-wide uppercase">Survey Platform</p>
         </div>
 

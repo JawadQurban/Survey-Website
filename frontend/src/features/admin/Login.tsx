@@ -29,7 +29,7 @@ export function AdminLogin() {
     <div className="min-h-screen bg-tfa-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="bg-tfa-navy px-6 py-5 rounded-t flex items-center gap-3">
-          <img src="/logo.svg" alt="TFA" className="h-8 w-auto brightness-0 invert" />
+          <img src="/logo.png" alt="TFA" className="h-8 w-auto" />
           <div>
             <p className="text-white font-semibold text-sm leading-tight">Admin Portal</p>
             <p className="text-white/60 text-xs">The Financial Academy</p>

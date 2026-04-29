@@ -33,7 +33,7 @@ export function ThankYou() {
       )}
 
       <div className="mt-10 pt-6 border-t border-tfa-gray-100">
-        <img src="/logo.svg" alt="The Financial Academy" className="h-10 mx-auto opacity-40" />
+        <img src="/logo.png" alt="The Financial Academy" className="h-10 mx-auto brightness-0 opacity-30" />
         <p className="text-xs text-tfa-gray-400 mt-2">
           {isRTL ? 'الأكاديمية المالية' : 'The Financial Academy'}
         </p>
