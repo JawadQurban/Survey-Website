@@ -10,6 +10,7 @@ import { useSurveyStore } from '@/store/surveyStore'
 import { publicApi } from '@/lib/api'
 import { t } from '@/lib/i18n'
 import type { Survey } from '@/types/survey'
+import type { AxiosError } from 'axios'
 
 const AUTOSAVE_INTERVAL_MS = 30_000
 
@@ -17,14 +18,23 @@ export function SurveyForm() {
   const { surveySlug } = useParams<{ surveySlug: string }>()
   const navigate = useNavigate()
   const { language } = useLanguageStore()
-  const { answers, setAnswer, markSaved, isDirty, getAllAnswers, respondentRole } = useSurveyStore()
+  const { answers, setAnswer, markSaved, isDirty, getAllAnswers, respondentRole, clearSession } = useSurveyStore()
   const autosaveTimer = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['survey-questions', surveySlug, language],
     queryFn: () => publicApi.getSurveyQuestions(surveySlug!, language),
     enabled: !!surveySlug,
+    retry: false,
   })
+
+  // Session expired or missing → restart onboarding
+  useEffect(() => {
+    if (isError && (error as AxiosError)?.response?.status === 401) {
+      clearSession()
+      navigate(`/survey/${surveySlug}/begin`, { replace: true })
+    }
+  }, [isError, error])
 
   const draftMutation = useMutation({
     mutationFn: () =>

@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
+import type { AxiosError } from 'axios'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
 import { Card, CardBody, CardHeader } from '@/components/ui/Card'
@@ -18,11 +19,19 @@ export function SurveyReview() {
   const { getAllAnswers, answers, clearSession, respondentRole } = useSurveyStore()
   const [submitError, setSubmitError] = useState('')
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['survey-questions', surveySlug, language],
     queryFn: () => publicApi.getSurveyQuestions(surveySlug!, language),
     enabled: !!surveySlug,
+    retry: false,
   })
+
+  useEffect(() => {
+    if (isError && (error as AxiosError)?.response?.status === 401) {
+      clearSession()
+      navigate(`/survey/${surveySlug}/begin`, { replace: true })
+    }
+  }, [isError, error])
 
   const submitMutation = useMutation({
     mutationFn: () =>
