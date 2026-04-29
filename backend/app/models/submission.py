@@ -21,24 +21,38 @@ class SubmissionStatus(str, enum.Enum):
 class Submission(Base):
     __tablename__ = "submissions"
     __table_args__ = (
-        UniqueConstraint("organization_id", "survey_id", "respondent_role", name="uq_org_survey_role"),
         Index("ix_submissions_org_survey", "organization_id", "survey_id"),
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    organization_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("organizations.id", ondelete="CASCADE"))
-    contact_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("organization_contacts.id", ondelete="SET NULL"), nullable=True)
+
+    # Optional FK — null for anonymous/self-service respondents
+    organization_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True
+    )
+    contact_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("organization_contacts.id", ondelete="SET NULL"), nullable=True
+    )
     survey_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("surveys.id", ondelete="CASCADE"))
+
+    # Anonymous respondent metadata (set from self-service onboarding)
+    session_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    org_name_input: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    sector: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    regulator: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    org_size: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    respondent_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
     respondent_role: Mapped[str] = mapped_column(String(16), nullable=False)
-    respondent_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    respondent_email: Mapped[str] = mapped_column(String(255), default="", server_default="")
     language_used: Mapped[str] = mapped_column(String(8), default="en")
     status: Mapped[SubmissionStatus] = mapped_column(String(16), default=SubmissionStatus.DRAFT)
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
 
-    organization: Mapped["Organization"] = relationship(back_populates="submissions")  # type: ignore[name-defined]
-    contact: Mapped["OrganizationContact"] = relationship(back_populates="submissions")  # type: ignore[name-defined]
+    organization: Mapped["Organization | None"] = relationship(back_populates="submissions")  # type: ignore[name-defined]
+    contact: Mapped["OrganizationContact | None"] = relationship(back_populates="submissions")  # type: ignore[name-defined]
     survey: Mapped["Survey"] = relationship(back_populates="submissions")  # type: ignore[name-defined]
     answers: Mapped[list["Answer"]] = relationship(back_populates="submission", cascade="all, delete-orphan")
     events: Mapped[list["SubmissionEvent"]] = relationship(back_populates="submission", cascade="all, delete-orphan")

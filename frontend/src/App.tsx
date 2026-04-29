@@ -11,7 +11,7 @@ import { useLanguageStore } from '@/store/languageStore'
 import { useEffect } from 'react'
 
 const LandingPage = lazy(() => import('@/features/public/LandingPage').then((m) => ({ default: m.LandingPage })))
-const VerifyEmail = lazy(() => import('@/features/public/VerifyEmail').then((m) => ({ default: m.VerifyEmail })))
+const SurveyOnboarding = lazy(() => import('@/features/public/SurveyOnboarding').then((m) => ({ default: m.SurveyOnboarding })))
 const SurveyOverviewPage = lazy(() => import('@/features/public/SurveyOverview').then((m) => ({ default: m.SurveyOverviewPage })))
 const SurveyForm = lazy(() => import('@/features/public/SurveyForm').then((m) => ({ default: m.SurveyForm })))
 const SurveyReview = lazy(() => import('@/features/public/SurveyReview').then((m) => ({ default: m.SurveyReview })))
@@ -43,7 +43,8 @@ export default function App() {
             {/* Public routes */}
             <Route element={<PublicLayout />}>
               <Route path="/" element={<LandingPage />} />
-              <Route path="/verify" element={<VerifyEmail />} />
+              {/* Self-service onboarding — slug-scoped entry point */}
+              <Route path="/survey/:surveySlug/begin" element={<SurveyOnboarding />} />
               <Route path="/survey/:surveySlug/overview" element={<SurveyOverviewPage />} />
               <Route path="/survey/:surveySlug/start" element={<SurveyForm />} />
               <Route path="/survey/:surveySlug/review" element={<SurveyReview />} />

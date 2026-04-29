@@ -18,25 +18,39 @@ class SubmissionService:
         self.db = db
 
     def _get_or_create_submission(
-        self, org_id: int, contact_id: int, survey_id: int, role: str, email: str, language: str
+        self,
+        session_key: str,
+        survey_id: int,
+        role: str,
+        language: str,
+        email: str = "",
+        org_name: str | None = None,
+        sector: str | None = None,
+        regulator: str | None = None,
+        org_size: str | None = None,
+        respondent_name: str | None = None,
     ):
-        existing = self.submission_repo.get_for_org_role_survey(org_id, survey_id, role)
+        existing = self.submission_repo.get_by_session_key(session_key, survey_id)
         if existing and existing.status == SubmissionStatus.SUBMITTED:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="A completed submission already exists for this organization and role. Contact an administrator to reopen it.",
+                detail="Your survey has already been submitted. Contact an administrator to reopen it.",
             )
         if not existing:
             existing = self.submission_repo.create(
-                organization_id=org_id,
-                contact_id=contact_id,
+                session_key=session_key,
                 survey_id=survey_id,
                 respondent_role=role,
                 respondent_email=email,
                 language_used=language,
                 status=SubmissionStatus.DRAFT,
+                org_name_input=org_name,
+                sector=sector,
+                regulator=regulator,
+                org_size=org_size,
+                respondent_name=respondent_name,
             )
-            self.submission_repo.add_event(existing.id, "draft_started", actor=email)
+            self.submission_repo.add_event(existing.id, "draft_started", actor=email or "anonymous")
         return existing
 
     def _validate_and_save_answers(
@@ -94,41 +108,71 @@ class SubmissionService:
 
     def save_draft(
         self,
-        org_id: int,
-        contact_id: int,
-        email: str,
+        session_key: str,
         survey_slug: str,
         role: str,
         language: str,
         answers: list[AnswerIn],
+        email: str = "",
+        org_name: str | None = None,
+        sector: str | None = None,
+        regulator: str | None = None,
+        org_size: str | None = None,
+        respondent_name: str | None = None,
     ):
         survey = self.survey_repo.get_by_slug(survey_slug)
         if not survey:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Survey not found")
 
-        submission = self._get_or_create_submission(org_id, contact_id, survey.id, role, email, language)
+        submission = self._get_or_create_submission(
+            session_key=session_key,
+            survey_id=survey.id,
+            role=role,
+            language=language,
+            email=email,
+            org_name=org_name,
+            sector=sector,
+            regulator=regulator,
+            org_size=org_size,
+            respondent_name=respondent_name,
+        )
         self._validate_and_save_answers(submission.id, survey_slug, role, answers)
         self.db.commit()
         return submission
 
     def submit(
         self,
-        org_id: int,
-        contact_id: int,
-        email: str,
+        session_key: str,
         survey_slug: str,
         role: str,
         language: str,
         answers: list[AnswerIn],
+        email: str = "",
+        org_name: str | None = None,
+        sector: str | None = None,
+        regulator: str | None = None,
+        org_size: str | None = None,
+        respondent_name: str | None = None,
     ):
         survey = self.survey_repo.get_by_slug(survey_slug)
         if not survey:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Survey not found")
 
-        submission = self._get_or_create_submission(org_id, contact_id, survey.id, role, email, language)
+        submission = self._get_or_create_submission(
+            session_key=session_key,
+            survey_id=survey.id,
+            role=role,
+            language=language,
+            email=email,
+            org_name=org_name,
+            sector=sector,
+            regulator=regulator,
+            org_size=org_size,
+            respondent_name=respondent_name,
+        )
         self._validate_and_save_answers(submission.id, survey_slug, role, answers)
         self.submission_repo.mark_submitted(submission)
-        self.submission_repo.add_event(submission.id, "submitted", actor=email)
+        self.submission_repo.add_event(submission.id, "submitted", actor=email or "anonymous")
         self.db.commit()
         logger.info("[Submission] Survey submitted", extra={"submission_id": submission.id, "role": role})
         return submission

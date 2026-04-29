@@ -3,11 +3,17 @@ import { persist } from 'zustand/middleware'
 import type { AnswerInput, RespondentRole } from '@/types/survey'
 
 interface SurveySession {
-  organizationId: number | null
-  organizationName: string | null
-  respondentRole: RespondentRole | null
   surveySlug: string | null
-  currentSectionIndex: number
+  respondentRole: RespondentRole | null
+  // Org info from onboarding
+  organizationName: string | null
+  sector: string | null
+  regulator: string | null
+  orgSize: string | null
+  // Respondent identity from onboarding
+  respondentName: string | null
+  respondentEmail: string | null
+  // Answer tracking
   answers: Record<number, AnswerInput>
   isDirty: boolean
   lastSavedAt: string | null
@@ -15,24 +21,30 @@ interface SurveySession {
 
 interface SurveyActions {
   setSession: (data: {
-    organizationId: number
-    organizationName: string
-    respondentRole: RespondentRole
     surveySlug: string
+    respondentRole: RespondentRole
+    organizationName?: string | null
+    sector?: string | null
+    regulator?: string | null
+    orgSize?: string | null
+    respondentName?: string | null
+    respondentEmail?: string | null
   }) => void
   setAnswer: (answer: AnswerInput) => void
-  setSection: (index: number) => void
   markSaved: () => void
   clearSession: () => void
   getAllAnswers: () => AnswerInput[]
 }
 
 const initialState: SurveySession = {
-  organizationId: null,
-  organizationName: null,
-  respondentRole: null,
   surveySlug: null,
-  currentSectionIndex: 0,
+  respondentRole: null,
+  organizationName: null,
+  sector: null,
+  regulator: null,
+  orgSize: null,
+  respondentName: null,
+  respondentEmail: null,
   answers: {},
   isDirty: false,
   lastSavedAt: null,
@@ -45,11 +57,14 @@ export const useSurveyStore = create<SurveySession & SurveyActions>()(
 
       setSession: (data) =>
         set({
-          organizationId: data.organizationId,
-          organizationName: data.organizationName,
-          respondentRole: data.respondentRole,
           surveySlug: data.surveySlug,
-          currentSectionIndex: 0,
+          respondentRole: data.respondentRole,
+          organizationName: data.organizationName ?? null,
+          sector: data.sector ?? null,
+          regulator: data.regulator ?? null,
+          orgSize: data.orgSize ?? null,
+          respondentName: data.respondentName ?? null,
+          respondentEmail: data.respondentEmail ?? null,
           answers: {},
           isDirty: false,
         }),
@@ -59,8 +74,6 @@ export const useSurveyStore = create<SurveySession & SurveyActions>()(
           answers: { ...state.answers, [answer.question_id]: answer },
           isDirty: true,
         })),
-
-      setSection: (index) => set({ currentSectionIndex: index }),
 
       markSaved: () => set({ isDirty: false, lastSavedAt: new Date().toISOString() }),
 

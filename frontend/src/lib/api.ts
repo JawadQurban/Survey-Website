@@ -25,8 +25,21 @@ api.interceptors.response.use(
 
 // Public
 export const publicApi = {
-  verifyEmail: (email: string, language: string) =>
-    api.post('/public/verify', { email, language }),
+  listActiveSurveys: (language: string) =>
+    api.get('/public/surveys', { params: { language } }),
+
+  beginSurvey: (
+    surveySlug: string,
+    data: {
+      org_name?: string | null
+      sector: string
+      regulator?: string | null
+      org_size: string
+      respondent_name?: string | null
+      respondent_email?: string | null
+      role: string
+    }
+  ) => api.post(`/public/surveys/${surveySlug}/begin`, data),
 
   getSurveyOverview: (slug: string, language: string) =>
     api.get(`/public/surveys/${slug}/overview`, { params: { language } }),

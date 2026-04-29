@@ -33,10 +33,17 @@ def list_submissions(
         {
             "id": s.id,
             "organization_id": s.organization_id,
-            "organization_name": s.organization.name_en if s.organization else "",
+            "organization_name": (
+                s.organization.name_en if s.organization
+                else (s.org_name_input or "Anonymous")
+            ),
             "survey_id": s.survey_id,
             "respondent_role": s.respondent_role,
             "respondent_email": s.respondent_email,
+            "respondent_name": s.respondent_name,
+            "sector": s.sector,
+            "regulator": s.regulator,
+            "org_size": s.org_size,
             "status": str(s.status),
             "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
             "created_at": s.created_at.isoformat(),

@@ -10,12 +10,16 @@ import { publicApi } from '@/lib/api'
 import { t } from '@/lib/i18n'
 import type { SurveyOverview } from '@/types/survey'
 
-const ROLE_KEY_MAP: Record<string, string> = { ceo: 'role.ceo', chro: 'role.chro', ld: 'role.ld' }
+const ROLE_LABELS: Record<string, { en: string; ar: string }> = {
+  ceo:  { en: 'CEO / Executive', ar: 'الرئيس التنفيذي' },
+  chro: { en: 'CHRO',            ar: 'مدير الموارد البشرية' },
+  ld:   { en: 'L&D Manager',     ar: 'مدير التعلم والتطوير' },
+}
 
 export function SurveyOverviewPage() {
   const { surveySlug } = useParams<{ surveySlug: string }>()
   const navigate = useNavigate()
-  const { language } = useLanguageStore()
+  const { language, isRTL } = useLanguageStore()
   const { respondentRole, organizationName } = useSurveyStore()
 
   const { data, isLoading, isError } = useQuery({
@@ -28,9 +32,10 @@ export function SurveyOverviewPage() {
   if (isError || !data) return <Alert variant="error">{t('error.generic', language)}</Alert>
 
   const overview = data.data as SurveyOverview
+  const roleLabel = respondentRole ? (isRTL ? ROLE_LABELS[respondentRole]?.ar : ROLE_LABELS[respondentRole]?.en) : null
 
   return (
-    <div className="max-w-2xl mx-auto animate-fade-in">
+    <div className="max-w-2xl mx-auto animate-fade-in" dir={isRTL ? 'rtl' : 'ltr'}>
       <Card>
         <CardHeader>
           <h1 className="text-2xl font-bold text-tfa-gray-800">{overview.title}</h1>
@@ -46,15 +51,15 @@ export function SurveyOverviewPage() {
               <p className="text-xs text-tfa-gray-400 font-medium uppercase tracking-wide mb-1">
                 {t('survey.overview.role', language)}
               </p>
-              <p className="text-sm font-semibold text-tfa-gray-800">
-                {respondentRole ? t(ROLE_KEY_MAP[respondentRole] ?? 'role.ceo', language) : '—'}
-              </p>
+              <p className="text-sm font-semibold text-tfa-gray-800">{roleLabel ?? '—'}</p>
             </div>
             <div>
               <p className="text-xs text-tfa-gray-400 font-medium uppercase tracking-wide mb-1">
                 {t('survey.overview.org', language)}
               </p>
-              <p className="text-sm font-semibold text-tfa-gray-800">{organizationName ?? '—'}</p>
+              <p className="text-sm font-semibold text-tfa-gray-800">
+                {organizationName || (isRTL ? 'مجهول' : 'Anonymous')}
+              </p>
             </div>
           </div>
 

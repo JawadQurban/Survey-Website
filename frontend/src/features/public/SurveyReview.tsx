@@ -37,15 +37,17 @@ export function SurveyReview() {
       navigate(`/survey/${surveySlug}/thank-you?ref=${subId}`)
     },
     onError: (err: { response?: { data?: { detail?: string } } }) => {
-      const msg = err.response?.data?.detail ?? t('error.generic', language)
-      setSubmitError(msg)
+      setSubmitError(err.response?.data?.detail ?? t('error.generic', language))
     },
   })
 
   if (isLoading) return <PageSpinner />
 
   const survey = data?.data as Survey
-  const sections = survey?.sections ?? []
+
+  // Flatten all questions across all sections
+  const allQuestions = (survey?.sections ?? []).flatMap((s) => s.questions)
+  const answeredQuestions = allQuestions.filter((q) => answers[q.id])
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in space-y-4">
@@ -58,48 +60,43 @@ export function SurveyReview() {
 
       <Alert variant="warning">{t('review.warning', language)}</Alert>
 
-      {sections.map((section) => {
-        const sectionTrans = getTranslation(section.translations, language)
-        const sectionAnsweredQuestions = section.questions.filter((q) => answers[q.id])
+      {answeredQuestions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <h3 className="font-semibold text-tfa-gray-800">
+              {language === 'ar' ? 'الإجابات المدخلة' : 'Your Answers'}
+            </h3>
+          </CardHeader>
+          <CardBody className="space-y-4">
+            {answeredQuestions.map((q) => {
+              const qTrans = getTranslation(q.translations, language)
+              const ans = answers[q.id]
+              let displayValue = ''
 
-        if (!sectionAnsweredQuestions.length) return null
+              if (ans?.open_text_value && !ans.selected_option_keys?.length) {
+                displayValue = ans.open_text_value
+              } else if (ans?.selected_option_keys?.length) {
+                displayValue = ans.selected_option_keys
+                  .map((key) => {
+                    if (key === '__open_text__') return ans.open_text_value ?? '...'
+                    const opt = q.options.find((o) => o.option_key === key)
+                    return opt ? (getTranslation(opt.translations, language)?.text ?? key) : key
+                  })
+                  .join(', ')
+              }
 
-        return (
-          <Card key={section.id}>
-            <CardHeader>
-              <h3 className="font-semibold text-tfa-gray-800">{sectionTrans?.title}</h3>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              {sectionAnsweredQuestions.map((q) => {
-                const qTrans = getTranslation(q.translations, language)
-                const ans = answers[q.id]
-                let displayValue = ''
-
-                if (ans?.open_text_value && !ans.selected_option_keys?.length) {
-                  displayValue = ans.open_text_value
-                } else if (ans?.selected_option_keys?.length) {
-                  displayValue = ans.selected_option_keys
-                    .map((key) => {
-                      if (key === '__open_text__') return ans.open_text_value ?? '...'
-                      const opt = q.options.find((o) => o.option_key === key)
-                      return opt ? (getTranslation(opt.translations, language)?.text ?? key) : key
-                    })
-                    .join(', ')
-                }
-
-                return (
-                  <div key={q.id} className="border-b border-tfa-gray-100 pb-3 last:border-0 last:pb-0">
-                    <p className="text-sm text-tfa-gray-500">{qTrans?.text}</p>
-                    <p className="text-sm font-medium text-tfa-gray-900 mt-1">
-                      {displayValue || <span className="italic text-tfa-gray-400">—</span>}
-                    </p>
-                  </div>
-                )
-              })}
-            </CardBody>
-          </Card>
-        )
-      })}
+              return (
+                <div key={q.id} className="border-b border-tfa-gray-100 pb-3 last:border-0 last:pb-0">
+                  <p className="text-sm text-tfa-gray-500">{qTrans?.text}</p>
+                  <p className="text-sm font-medium text-tfa-gray-900 mt-1">
+                    {displayValue || <span className="italic text-tfa-gray-400">—</span>}
+                  </p>
+                </div>
+              )
+            })}
+          </CardBody>
+        </Card>
+      )}
 
       <div className="flex gap-3 pt-2">
         <Button

@@ -128,10 +128,26 @@ export interface AnswerOut {
   updated_at: string
 }
 
-export interface VerificationConfirmOut {
-  session_token: string
-  organization_id: number
-  organization_name: string
-  respondent_role: RespondentRole
-  survey_slug: string
+export interface SurveyListItem {
+  id: number
+  slug: string
+  title: string
 }
+
+export interface SurveyBeginOut {
+  survey_slug: string
+  role: RespondentRole
+  sector: string
+}
+
+export type Sector =
+  | 'banks'
+  | 'insurance'
+  | 'capital_market'
+  | 'fintech'
+  | 'financing'
+  | 'regulatory'
+  | 'non_financial'
+  | 'government'
+
+export type OrgSize = 'lt_50' | '50_249' | '250_999' | '1000_4999' | 'gte_5000'

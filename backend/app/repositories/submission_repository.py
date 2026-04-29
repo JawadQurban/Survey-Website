@@ -19,14 +19,11 @@ class SubmissionRepository:
             )
         ).scalar_one_or_none()
 
-    def get_for_org_role_survey(
-        self, org_id: int, survey_id: int, role: str
-    ) -> Submission | None:
+    def get_by_session_key(self, session_key: str, survey_id: int) -> Submission | None:
         return self.db.execute(
             select(Submission).where(
-                Submission.organization_id == org_id,
+                Submission.session_key == session_key,
                 Submission.survey_id == survey_id,
-                Submission.respondent_role == role,
             )
         ).scalar_one_or_none()
 

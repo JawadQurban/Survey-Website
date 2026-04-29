@@ -1,14 +1,32 @@
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { useLanguageStore } from '@/store/languageStore'
+import { publicApi } from '@/lib/api'
 import { t } from '@/lib/i18n'
+import type { SurveyListItem } from '@/types/survey'
 
 export function LandingPage() {
   const navigate = useNavigate()
   const { language, isRTL } = useLanguageStore()
 
+  const { data: surveysData } = useQuery({
+    queryKey: ['active-surveys', language],
+    queryFn: () => publicApi.listActiveSurveys(language),
+    staleTime: 60_000,
+  })
+
+  const surveys = (surveysData?.data as SurveyListItem[]) ?? []
+  const firstSurvey = surveys[0]
+
+  const handleBegin = () => {
+    if (firstSurvey) {
+      navigate(`/survey/${firstSurvey.slug}/begin`)
+    }
+  }
+
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Hero */}
       <div className="text-center py-12 sm:py-16">
         <div className="mb-6">
@@ -27,7 +45,11 @@ export function LandingPage() {
           {t('landing.description', language)}
         </p>
 
-        <Button size="lg" onClick={() => navigate('/verify')}>
+        <Button
+          size="lg"
+          onClick={handleBegin}
+          disabled={!firstSurvey}
+        >
           {t('landing.cta', language)}
         </Button>
       </div>

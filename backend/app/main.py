@@ -8,7 +8,7 @@ from app.core.config import settings
 from app.core.logging import configure_logging
 from app.core.database import check_db_connection
 
-from app.api.public import verify, surveys, submissions
+from app.api.public import verify, surveys, submissions, begin as survey_begin
 from app.api.admin import auth, organizations, contacts, surveys as admin_surveys, questions, sections as admin_sections, submissions as admin_submissions, dashboard, cms
 
 configure_logging()
@@ -38,6 +38,7 @@ def create_app() -> FastAPI:
     public_prefix = "/api/public"
     app.include_router(verify.router, prefix=public_prefix)
     app.include_router(surveys.router, prefix=public_prefix)
+    app.include_router(survey_begin.router, prefix=public_prefix)
     app.include_router(submissions.router, prefix=public_prefix)
 
     # Admin routes
