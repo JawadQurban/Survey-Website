@@ -22,17 +22,24 @@ export function SurveyOverviewPage() {
   const { language, isRTL } = useLanguageStore()
   const { respondentRole, organizationName } = useSurveyStore()
 
+  // All hooks must be called before any early return
   const { data, isLoading, isError } = useQuery({
     queryKey: ['survey-overview', surveySlug, language],
     queryFn: () => publicApi.getSurveyOverview(surveySlug!, language),
-    enabled: !!surveySlug,
+    enabled: !!surveySlug && !!respondentRole,
   })
+
+  // No session — send to onboarding (after all hooks)
+  if (!respondentRole) {
+    navigate(`/survey/${surveySlug}/begin`, { replace: true })
+    return null
+  }
 
   if (isLoading) return <PageSpinner />
   if (isError || !data) return <Alert variant="error">{t('error.generic', language)}</Alert>
 
   const overview = data.data as SurveyOverview
-  const roleLabel = respondentRole ? (isRTL ? ROLE_LABELS[respondentRole]?.ar : ROLE_LABELS[respondentRole]?.en) : null
+  const roleLabel = isRTL ? ROLE_LABELS[respondentRole]?.ar : ROLE_LABELS[respondentRole]?.en
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in" dir={isRTL ? 'rtl' : 'ltr'}>

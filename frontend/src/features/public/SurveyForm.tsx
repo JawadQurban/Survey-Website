@@ -17,7 +17,7 @@ export function SurveyForm() {
   const { surveySlug } = useParams<{ surveySlug: string }>()
   const navigate = useNavigate()
   const { language } = useLanguageStore()
-  const { answers, setAnswer, markSaved, isDirty, getAllAnswers } = useSurveyStore()
+  const { answers, setAnswer, markSaved, isDirty, getAllAnswers, respondentRole } = useSurveyStore()
   const autosaveTimer = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const { data, isLoading, isError } = useQuery({
@@ -44,6 +44,12 @@ export function SurveyForm() {
       if (autosaveTimer.current) clearInterval(autosaveTimer.current)
     }
   }, [isDirty])
+
+  // No session — redirect to onboarding
+  if (!respondentRole) {
+    navigate(`/survey/${surveySlug}/begin`, { replace: true })
+    return null
+  }
 
   if (isLoading) return <PageSpinner />
   if (isError) return <Alert variant="error">{t('error.generic', language)}</Alert>

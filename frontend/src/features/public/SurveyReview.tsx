@@ -15,7 +15,7 @@ export function SurveyReview() {
   const { surveySlug } = useParams<{ surveySlug: string }>()
   const navigate = useNavigate()
   const { language } = useLanguageStore()
-  const { getAllAnswers, answers, clearSession } = useSurveyStore()
+  const { getAllAnswers, answers, clearSession, respondentRole } = useSurveyStore()
   const [submitError, setSubmitError] = useState('')
 
   const { data, isLoading } = useQuery({
@@ -40,6 +40,11 @@ export function SurveyReview() {
       setSubmitError(err.response?.data?.detail ?? t('error.generic', language))
     },
   })
+
+  if (!respondentRole) {
+    navigate(`/survey/${surveySlug}/begin`, { replace: true })
+    return null
+  }
 
   if (isLoading) return <PageSpinner />
 
