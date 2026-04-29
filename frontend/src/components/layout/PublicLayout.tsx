@@ -10,7 +10,7 @@ export function PublicLayout() {
       <header className="bg-tfa-navy text-white border-b border-white/10">
         <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt="The Financial Academy" className="h-7 w-auto" />
+            <img src="/logo.svg" alt="The Financial Academy" className="h-7 w-auto brightness-0 invert" />
             <span className="text-sm text-white/80 hidden sm:block">
               {isRTL ? 'الأكاديمية المالية' : 'The Financial Academy'}
             </span>
