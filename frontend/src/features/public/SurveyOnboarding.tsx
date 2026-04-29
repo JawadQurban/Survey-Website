@@ -167,7 +167,7 @@ const SELECT_CLS =
 export function SurveyOnboarding() {
   const { surveySlug } = useParams<{ surveySlug: string }>()
   const navigate = useNavigate()
-  const { language, isRTL } = useLanguageStore()
+  const { isRTL } = useLanguageStore()
   const { setSession } = useSurveyStore()
 
   const [step, setStep] = useState<1 | 2>(1)
