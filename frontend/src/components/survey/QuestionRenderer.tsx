@@ -62,9 +62,22 @@ export function QuestionRenderer({ question, value, onChange, language }: Questi
           onChange={(e) => onChange({ question_id: question.id, open_text_value: e.target.value })}
           placeholder={language === 'ar' ? 'أدخل إجابتك هنا...' : 'Enter your answer here...'}
           className={clsx(
-            'w-full rounded-lg border border-tfa-gray-300 px-3.5 py-2.5 text-sm',
+            'w-full rounded-lg border border-tfa-gray-300 bg-white px-3.5 py-2.5 text-sm text-tfa-gray-800',
             'focus:outline-none focus:ring-2 focus:ring-tfa-navy focus:border-tfa-navy',
             'placeholder:text-tfa-gray-400 resize-none'
+          )}
+        />
+      )}
+
+      {question.question_type === 'number' && (
+        <input
+          type="number"
+          value={value?.numeric_value ?? ''}
+          onChange={(e) => onChange({ question_id: question.id, numeric_value: e.target.value === '' ? undefined : Number(e.target.value) })}
+          placeholder="0"
+          className={clsx(
+            'w-40 rounded-lg border border-tfa-gray-300 bg-white px-3.5 py-2.5 text-sm text-tfa-gray-800',
+            'focus:outline-none focus:ring-2 focus:ring-tfa-navy focus:border-tfa-navy'
           )}
         />
       )}
