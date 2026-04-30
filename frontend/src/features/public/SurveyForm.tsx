@@ -32,7 +32,7 @@ const SECTORS = [
   { key: 'capital_markets', badge: 'C', en: 'Capital Markets',ar: 'أسواق رأس المال' },
   { key: 'payments',        badge: 'P', en: 'Payments',       ar: 'المدفوعات' },
   { key: 'financing',       badge: 'F', en: 'Financing',      ar: 'التمويل' },
-  { key: 'other',           badge: '?', en: 'Other',          ar: 'أخرى (يرجى التحديد)' },
+  { key: 'other',           badge: 'O', en: 'Other',          ar: 'أخرى (يرجى التحديد)' },
 ]
 
 const ORG_SIZES = [
@@ -45,10 +45,9 @@ const ORG_SIZES = [
 ]
 
 const ROLES = [
-  { key: 'ceo',   badge: 'CEO',  en: 'CEO / Executive', ar: 'الرئيس التنفيذي / مستوى تنفيذي', descEn: 'C-suite executive or board level', descAr: 'قيادة تنفيذية أو مجلس إدارة' },
-  { key: 'chro',  badge: 'CHRO', en: 'CHRO',            ar: 'مدير الموارد البشرية',             descEn: 'Head of Human Capital / HR',        descAr: 'رئيس الموارد البشرية / رأس المال البشري' },
-  { key: 'ld',    badge: 'LD',   en: 'L&D Manager',     ar: 'التعلم والتطوير',                  descEn: 'Head of Learning & Development',    descAr: 'رئيس التعلم والتطوير' },
-  { key: 'other', badge: '?',    en: 'Other',            ar: 'أخرى (يرجى التحديد)',              descEn: 'Please specify below',              descAr: 'يرجى التحديد أدناه' },
+  { key: 'ceo',  badge: 'CEO',  en: 'CEO / Executive', ar: 'الرئيس التنفيذي / مستوى تنفيذي', descEn: 'C-suite executive or board level', descAr: 'قيادة تنفيذية أو مجلس إدارة' },
+  { key: 'chro', badge: 'CHRO', en: 'CHRO',            ar: 'رئيس قسم الموارد البشرية',        descEn: 'Head of Human Capital / HR',        descAr: 'رئيس الموارد البشرية / رأس المال البشري' },
+  { key: 'ld',   badge: 'LD',   en: 'L&D Manager',     ar: 'التعلم والتطوير',                 descEn: 'Head of Learning & Development',    descAr: 'رئيس التعلم والتطوير' },
 ]
 
 // ─── Intro form (sector / org size / role) ────────────────────────────────────
@@ -65,20 +64,16 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
   const [otherSectorText, setOtherSectorText] = useState('')
   const [orgSize,         setOrgSize]         = useState('')
   const [otherOrgText,    setOtherOrgText]    = useState('')
-  const [role,            setRole]            = useState('')
-  const [otherRoleText,   setOtherRoleText]   = useState('')
   const [error,           setError]           = useState('')
 
   const handleSubmit = () => {
-    if (!sector)  return setError(isRTL ? 'يرجى اختيار القطاع'      : 'Please select your sector')
-    if (sector === 'other' && !otherSectorText.trim())
-      return setError(isRTL ? 'يرجى تحديد قطاعك'                    : 'Please specify your sector')
-    if (!orgSize) return setError(isRTL ? 'يرجى اختيار حجم المنشأة' : 'Please select your organization size')
-    if (orgSize === 'other' && !otherOrgText.trim())
-      return setError(isRTL ? 'يرجى تحديد حجم منشأتك'               : 'Please specify your organization size')
     if (!role)    return setError(isRTL ? 'يرجى اختيار دورك'         : 'Please select your role')
-    if (role === 'other' && !otherRoleText.trim())
-      return setError(isRTL ? 'يرجى تحديد دورك'                     : 'Please specify your role')
+    if (!sector)  return setError(isRTL ? 'يرجى اختيار القطاع'       : 'Please select your sector')
+    if (sector === 'other' && !otherSectorText.trim())
+      return setError(isRTL ? 'يرجى تحديد قطاعك'                     : 'Please specify your sector')
+    if (!orgSize) return setError(isRTL ? 'يرجى اختيار حجم المنشأة'  : 'Please select your organization size')
+    if (orgSize === 'other' && !otherOrgText.trim())
+      return setError(isRTL ? 'يرجى تحديد حجم منشأتك'                : 'Please specify your organization size')
     setError('')
     onBegin(sector, orgSize, role)
   }
@@ -88,10 +83,45 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
   return (
     <div className="bg-white border border-tfa-gray-200 rounded shadow-card divide-y divide-tfa-gray-100">
 
-      {/* Q1: Sector */}
+      {/* Q1: Role — shown first per Excel section 0 order */}
       <div className="px-6 py-5">
         <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
-          {isRTL ? 'في أي قطاع تعمل حالياً؟' : 'Which sector are you currently operating in?'}
+          {isRTL
+            ? 'ما هو الوصف الأنسب لدورك الحالي داخل المنظمة؟'
+            : 'What best describes your current role within the organization?'}
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+          {ROLES.map((r) => (
+            <button
+              key={r.key}
+              type="button"
+              onClick={() => { setRole(r.key); setError('') }}
+              className={`flex items-start gap-3 w-full border rounded p-4 transition-all ${
+                isRTL ? 'flex-row-reverse text-right' : 'text-left'
+              } ${
+                role === r.key
+                  ? 'border-tfa-navy bg-tfa-navy/5 ring-1 ring-tfa-navy'
+                  : 'border-tfa-gray-200 bg-white hover:border-tfa-gray-400'
+              }`}
+            >
+              <span className={`shrink-0 w-9 h-9 rounded flex items-center justify-center text-xs font-bold ${
+                role === r.key ? 'bg-tfa-navy text-white' : 'bg-tfa-gray-100 text-tfa-gray-600'
+              }`}>{r.badge}</span>
+              <div>
+                <p className={`text-sm font-semibold ${role === r.key ? 'text-tfa-navy' : 'text-tfa-gray-800'}`}>
+                  {isRTL ? r.ar : r.en}
+                </p>
+                <p className="text-xs text-tfa-gray-500 mt-0.5">{isRTL ? r.descAr : r.descEn}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Q2: Sector */}
+      <div className="px-6 py-5">
+        <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
+          {isRTL ? 'في أي قطاع تعملون حالياً؟' : 'Which sector are you currently operating in?'}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
           {SECTORS.map((s) => (
@@ -116,8 +146,6 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
             </button>
           ))}
         </div>
-
-        {/* "Other" free-text input */}
         {sector === 'other' && (
           <div className="mt-3">
             <input
@@ -133,11 +161,11 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
         )}
       </div>
 
-      {/* Q2: Org Size */}
+      {/* Q3: Org Size */}
       <div className="px-6 py-5">
         <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
           {isRTL
-            ? 'ما حجم مؤسستك من حيث عدد الموظفين في المملكة السعودية؟'
+            ? 'ما حجم مؤسستك من حيث عدد الموظفين في المملكة العربية السعودية؟'
             : 'What is the size of your organization in terms of number of employees in KSA?'}
         </p>
         <div className="space-y-2 mt-3">
@@ -162,8 +190,6 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
             </label>
           ))}
         </div>
-
-        {/* "Other" free-text input */}
         {orgSize === 'other' && (
           <div className="mt-3">
             <input
@@ -173,56 +199,6 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
               placeholder={isRTL ? 'يرجى تحديد حجم منشأتك' : 'Please specify your organization size'}
               value={otherOrgText}
               onChange={(e) => { setOtherOrgText(e.target.value); setError('') }}
-              dir={isRTL ? 'rtl' : 'ltr'}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Q3: Role */}
-      <div className="px-6 py-5">
-        <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
-          {isRTL
-            ? 'ما هو الوصف الأنسب لدورك الحالي داخل المنظمة؟'
-            : 'What best describes your current role within the organization?'}
-        </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
-          {ROLES.map((r) => (
-            <button
-              key={r.key}
-              type="button"
-              onClick={() => { setRole(r.key); setOtherRoleText(''); setError('') }}
-              className={`flex items-start gap-3 w-full border rounded p-4 transition-all ${
-                isRTL ? 'flex-row-reverse text-right' : 'text-left'
-              } ${
-                role === r.key
-                  ? 'border-tfa-navy bg-tfa-navy/5 ring-1 ring-tfa-navy'
-                  : 'border-tfa-gray-200 bg-white hover:border-tfa-gray-400'
-              }`}
-            >
-              <span className={`shrink-0 w-9 h-9 rounded flex items-center justify-center text-xs font-bold ${
-                role === r.key ? 'bg-tfa-navy text-white' : 'bg-tfa-gray-100 text-tfa-gray-600'
-              }`}>{r.badge}</span>
-              <div>
-                <p className={`text-sm font-semibold ${role === r.key ? 'text-tfa-navy' : 'text-tfa-gray-800'}`}>
-                  {isRTL ? r.ar : r.en}
-                </p>
-                <p className="text-xs text-tfa-gray-500 mt-0.5">{isRTL ? r.descAr : r.descEn}</p>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {/* "Other" free-text input */}
-        {role === 'other' && (
-          <div className="mt-3">
-            <input
-              type="text"
-              autoFocus
-              className="w-full rounded border border-tfa-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
-              placeholder={isRTL ? 'يرجى تحديد دورك' : 'Please specify your role'}
-              value={otherRoleText}
-              onChange={(e) => { setOtherRoleText(e.target.value); setError('') }}
               dir={isRTL ? 'rtl' : 'ltr'}
             />
           </div>

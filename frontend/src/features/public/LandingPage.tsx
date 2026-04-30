@@ -28,12 +28,6 @@ export function LandingPage() {
     <div className="animate-fade-in" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Hero */}
       <div className="text-center py-12 sm:py-16">
-        <div className="mb-6">
-          <span className="inline-block bg-tfa-navy/10 text-tfa-navy text-sm font-semibold px-4 py-1.5 rounded">
-            {isRTL ? 'تحديث الاستراتيجية 2025' : 'Strategy Refresh 2025'}
-          </span>
-        </div>
-
         <h1 className="text-3xl sm:text-4xl font-bold text-tfa-gray-800 mb-6 leading-tight">
           {isRTL ? 'دراسة مشهد التدريب' : 'Training Landscape Study'}
         </h1>
