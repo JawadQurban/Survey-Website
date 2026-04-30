@@ -83,10 +83,11 @@ export function QuestionBuilder() {
   const navigate = useNavigate()
   const qc = useQueryClient()
 
-  const [editingId,  setEditingId]  = useState<number | null>(null)
-  const [editForm,   setEditForm]   = useState<EditForm>({ text_en: '', text_ar: '', question_type: 'open_text', roles: [], has_open_text_option: false, open_text_label_en: '', open_text_label_ar: '', newOptEn: '', newOptAr: '' })
+  const [editingId,   setEditingId]   = useState<number | null>(null)
+  const [editForm,    setEditForm]    = useState<EditForm>({ text_en: '', text_ar: '', question_type: 'open_text', roles: [], has_open_text_option: false, open_text_label_en: '', open_text_label_ar: '', newOptEn: '', newOptAr: '' })
   const [showAddForm, setShowAddForm] = useState(false)
-  const [newQForm,   setNewQForm]   = useState<NewQForm>(EMPTY_NEW_Q)
+  const [newQForm,    setNewQForm]    = useState<NewQForm>(EMPTY_NEW_Q)
+  const [roleFilter,  setRoleFilter]  = useState<string>('all')
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-survey', surveyId],
@@ -129,6 +130,9 @@ export function QuestionBuilder() {
 
   const titleEn      = getTranslation(survey.translations, 'en')?.title ?? survey.slug
   const allQuestions = (survey.sections ?? []).flatMap((s) => s.questions)
+  const visibleQuestions = roleFilter === 'all'
+    ? allQuestions
+    : allQuestions.filter((q) => q.visibility_rules.some((r) => r.role === roleFilter))
 
   const startEdit = (q: Question) => {
     setEditingId(q.id)
@@ -280,7 +284,7 @@ export function QuestionBuilder() {
           <div>
             <h1 className="text-2xl font-bold text-tfa-gray-800">Question Editor</h1>
             <p className="text-sm text-tfa-gray-500">
-              {titleEn} · {allQuestions.length} question{allQuestions.length !== 1 ? 's' : ''}
+              {titleEn} · {visibleQuestions.length} of {allQuestions.length} question{allQuestions.length !== 1 ? 's' : ''}
             </p>
           </div>
         </div>
@@ -292,15 +296,40 @@ export function QuestionBuilder() {
         </Button>
       </div>
 
+      {/* Role filter */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-medium text-tfa-gray-500 uppercase tracking-wide">Filter by role:</span>
+        {(['all', 'ceo', 'chro', 'ld'] as const).map((r) => (
+          <button
+            key={r}
+            onClick={() => setRoleFilter(r)}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+              roleFilter === r
+                ? 'bg-tfa-navy text-white'
+                : 'bg-tfa-gray-100 text-tfa-gray-600 hover:bg-tfa-gray-200'
+            }`}
+          >
+            {r === 'all' ? 'All' : r === 'ceo' ? 'CEO' : r === 'chro' ? 'CHRO' : 'L&D'}
+          </button>
+        ))}
+        {roleFilter !== 'all' && (
+          <span className="text-xs text-tfa-gray-400 ml-1">
+            {visibleQuestions.length} question{visibleQuestions.length !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+
       {/* Flat question list */}
       <div className="border border-tfa-gray-200 rounded overflow-hidden divide-y divide-tfa-gray-100 bg-white">
-        {allQuestions.length === 0 && !showAddForm && (
+        {visibleQuestions.length === 0 && !showAddForm && (
           <div className="px-6 py-12 text-center text-tfa-gray-400 text-sm">
-            No questions yet. Click "Add Question" to get started.
+            {allQuestions.length === 0
+              ? 'No questions yet. Click "Add Question" to get started.'
+              : `No questions visible to ${roleFilter.toUpperCase()} role.`}
           </div>
         )}
 
-        {allQuestions.map((q, idx) => {
+        {visibleQuestions.map((q, idx) => {
           const textEn    = getTranslation(q.translations, 'en')?.text ?? ''
           const textAr    = getTranslation(q.translations, 'ar')?.text ?? ''
           const isEditing    = editingId === q.id
