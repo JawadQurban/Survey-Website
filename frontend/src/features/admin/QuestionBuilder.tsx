@@ -7,7 +7,7 @@ import { PageSpinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import type { Survey, Question, QuestionType } from '@/types/survey'
-import { ArrowLeft, Save, X, Plus, Trash2, Pencil, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Save, X, Plus, Trash2, Pencil, CheckCircle2, ChevronUp, ChevronDown } from 'lucide-react'
 
 const ROLES = [
   { key: 'ceo',  label: 'CEO'  },
@@ -142,6 +142,37 @@ export function QuestionBuilder() {
       adminApi.updateOption(id, payload),
     onSuccess: () => { invalidate(); setEditingOptId(null) },
   })
+
+  const reorderMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: object }) =>
+      adminApi.updateQuestion(id, payload),
+    onSuccess: () => invalidate(),
+  })
+
+  const moveQuestion = (q: Question, direction: 'up' | 'down') => {
+    const list = allQuestions // sorted by display_order from the API
+    const idx  = list.findIndex((x) => x.id === q.id)
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1
+    if (swapIdx < 0 || swapIdx >= list.length) return
+    const other = list[swapIdx]
+    // Swap display_orders between the two questions
+    reorderMutation.mutate({ id: q.id, payload: {
+      section_id: q.section_id, question_key: q.question_key,
+      question_type: q.question_type, display_order: other.display_order,
+      is_required: q.is_required, has_open_text_option: q.has_open_text_option,
+      open_text_label_en: q.open_text_label_en, open_text_label_ar: q.open_text_label_ar,
+      module: q.module, visible_to_roles: q.visibility_rules.map((r) => r.role),
+      translations: q.translations.map((t) => ({ language_code: t.language_code, text: t.text })),
+    }})
+    reorderMutation.mutate({ id: other.id, payload: {
+      section_id: other.section_id, question_key: other.question_key,
+      question_type: other.question_type, display_order: q.display_order,
+      is_required: other.is_required, has_open_text_option: other.has_open_text_option,
+      open_text_label_en: other.open_text_label_en, open_text_label_ar: other.open_text_label_ar,
+      module: other.module, visible_to_roles: other.visibility_rules.map((r) => r.role),
+      translations: other.translations.map((t) => ({ language_code: t.language_code, text: t.text })),
+    }})
+  }
 
   const createSectionMutation = useMutation({
     mutationFn: (payload: object) => adminApi.createSection(payload),
@@ -397,6 +428,23 @@ export function QuestionBuilder() {
                         <CheckCircle2 className="h-3.5 w-3.5" /> Saved
                       </span>
                     )}
+                    {/* Reorder buttons */}
+                    <button
+                      onClick={() => moveQuestion(q, 'up')}
+                      disabled={idx === 0}
+                      className="p-1 rounded hover:bg-tfa-gray-100 text-tfa-gray-400 hover:text-tfa-gray-700 disabled:opacity-20 disabled:cursor-not-allowed"
+                      title="Move up"
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => moveQuestion(q, 'down')}
+                      disabled={idx === visibleQuestions.length - 1}
+                      className="p-1 rounded hover:bg-tfa-gray-100 text-tfa-gray-400 hover:text-tfa-gray-700 disabled:opacity-20 disabled:cursor-not-allowed"
+                      title="Move down"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
                     <Button variant="ghost" size="sm" onClick={() => startEdit(q)}>Edit</Button>
                     <button
                       onClick={() => {
