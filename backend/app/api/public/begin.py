@@ -17,24 +17,15 @@ VALID_SECTORS = {
     "financing", "regulatory", "non_financial", "government",
 }
 
-VALID_ORG_SIZES = {
-    "lt_50", "50_249", "250_999", "1000_4999", "gte_5000",
-}
+VALID_ORG_SIZES = {"lt_50", "50_249", "250_999", "1000_4999", "gte_5000"}
 
 VALID_ROLES = {"ceo", "chro", "ld"}
 
-# These sectors do not have a financial regulator
-SECTORS_NO_REGULATOR = {"government", "non_financial"}
-
 
 class SurveyBeginRequest(BaseModel):
-    org_name: str | None = None
-    sector: str
-    regulator: str | None = None
+    sector:   str
     org_size: str
-    respondent_name: str | None = None
-    respondent_email: str | None = None
-    role: str
+    role:     str
 
     @field_validator("sector")
     @classmethod
@@ -60,8 +51,8 @@ class SurveyBeginRequest(BaseModel):
 
 class SurveyBeginOut(BaseModel):
     survey_slug: str
-    role: str
-    sector: str
+    role:        str
+    sector:      str
 
 
 @router.post("/{survey_slug}/begin", response_model=SurveyBeginOut)
@@ -83,16 +74,12 @@ def begin_survey(
     token = create_access_token(
         subject=session_key,
         extra={
-            "type": "survey_session",
-            "survey_slug": survey_slug,
-            "role": body.role,
-            "sector": body.sector,
-            "regulator": body.regulator,
-            "org_size": body.org_size,
-            "org_name": body.org_name,
-            "respondent_name": body.respondent_name,
-            "respondent_email": body.respondent_email or "",
-            "session_key": session_key,
+            "type":         "survey_session",
+            "survey_slug":  survey_slug,
+            "role":         body.role,
+            "sector":       body.sector,
+            "org_size":     body.org_size,
+            "session_key":  session_key,
         },
     )
 
