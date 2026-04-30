@@ -29,7 +29,7 @@ export function SurveyReview() {
   useEffect(() => {
     if (isError && (error as AxiosError)?.response?.status === 401) {
       clearSession()
-      navigate(`/survey/${surveySlug}/begin`, { replace: true })
+      navigate(`/survey/${surveySlug}/start`, { replace: true })
     }
   }, [isError, error])
 

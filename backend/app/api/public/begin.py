@@ -79,12 +79,6 @@ def begin_survey(
             detail="Survey not found or not currently active.",
         )
 
-    if body.sector not in SECTORS_NO_REGULATOR and not body.regulator:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Please select your regulatory body for this sector.",
-        )
-
     session_key = str(uuid.uuid4())
     token = create_access_token(
         subject=session_key,

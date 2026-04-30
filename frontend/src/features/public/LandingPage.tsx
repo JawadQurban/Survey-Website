@@ -21,7 +21,7 @@ export function LandingPage() {
 
   const handleBegin = () => {
     if (firstSurvey) {
-      navigate(`/survey/${firstSurvey.slug}/begin`)
+      navigate(`/survey/${firstSurvey.slug}/start`)
     }
   }
 

@@ -173,7 +173,7 @@ export function QuestionBuilder() {
         visible_to_roles:      editForm.roles,
         translations: [
           { language_code: 'en', text: editForm.text_en },
-          { language_code: 'ar', text: editForm.text_ar },
+          ...(editForm.text_ar.trim() ? [{ language_code: 'ar', text: editForm.text_ar.trim() }] : []),
         ],
       },
     })

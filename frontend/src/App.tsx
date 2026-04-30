@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { queryClient } from '@/lib/queryClient'
@@ -11,8 +11,6 @@ import { useLanguageStore } from '@/store/languageStore'
 import { useEffect } from 'react'
 
 const LandingPage = lazy(() => import('@/features/public/LandingPage').then((m) => ({ default: m.LandingPage })))
-const SurveyOnboarding = lazy(() => import('@/features/public/SurveyOnboarding').then((m) => ({ default: m.SurveyOnboarding })))
-const SurveyOverviewPage = lazy(() => import('@/features/public/SurveyOverview').then((m) => ({ default: m.SurveyOverviewPage })))
 const SurveyForm = lazy(() => import('@/features/public/SurveyForm').then((m) => ({ default: m.SurveyForm })))
 const SurveyReview = lazy(() => import('@/features/public/SurveyReview').then((m) => ({ default: m.SurveyReview })))
 const ThankYou = lazy(() => import('@/features/public/ThankYou').then((m) => ({ default: m.ThankYou })))
@@ -22,6 +20,11 @@ const Dashboard = lazy(() => import('@/features/admin/Dashboard').then((m) => ({
 const Surveys = lazy(() => import('@/features/admin/Surveys').then((m) => ({ default: m.Surveys })))
 const Submissions = lazy(() => import('@/features/admin/Submissions').then((m) => ({ default: m.Submissions })))
 const QuestionBuilder = lazy(() => import('@/features/admin/QuestionBuilder').then((m) => ({ default: m.QuestionBuilder })))
+
+function RedirectToStart() {
+  const { surveySlug } = useParams<{ surveySlug: string }>()
+  return <Navigate to={`/survey/${surveySlug}/start`} replace />
+}
 
 function AppInit() {
   const { language, setLanguage } = useLanguageStore()
@@ -41,9 +44,9 @@ export default function App() {
             {/* Public routes */}
             <Route element={<PublicLayout />}>
               <Route path="/" element={<LandingPage />} />
-              {/* Self-service onboarding — slug-scoped entry point */}
-              <Route path="/survey/:surveySlug/begin" element={<SurveyOnboarding />} />
-              <Route path="/survey/:surveySlug/overview" element={<SurveyOverviewPage />} />
+                {/* Legacy onboarding/overview URLs redirect directly to the survey form */}
+              <Route path="/survey/:surveySlug/begin" element={<RedirectToStart />} />
+              <Route path="/survey/:surveySlug/overview" element={<RedirectToStart />} />
               <Route path="/survey/:surveySlug/start" element={<SurveyForm />} />
               <Route path="/survey/:surveySlug/review" element={<SurveyReview />} />
               <Route path="/survey/:surveySlug/thank-you" element={<ThankYou />} />
