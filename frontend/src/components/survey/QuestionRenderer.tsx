@@ -55,9 +55,23 @@ export function QuestionRenderer({ question, value, onChange, language }: Questi
         <p className="text-sm text-tfa-gray-500 mb-3">{helperText}</p>
       )}
 
-      {(question.question_type === 'open_text' || question.question_type === 'textarea') && (
+      {question.question_type === 'open_text' && (
+        <input
+          type="text"
+          value={value?.open_text_value ?? ''}
+          onChange={(e) => onChange({ question_id: question.id, open_text_value: e.target.value })}
+          placeholder={language === 'ar' ? 'أدخل إجابتك هنا...' : 'Enter your answer here...'}
+          className={clsx(
+            'w-full rounded-lg border border-tfa-gray-300 bg-white px-3.5 py-2.5 text-sm text-tfa-gray-800',
+            'focus:outline-none focus:ring-2 focus:ring-tfa-navy focus:border-tfa-navy',
+            'placeholder:text-tfa-gray-400'
+          )}
+        />
+      )}
+
+      {question.question_type === 'textarea' && (
         <textarea
-          rows={question.question_type === 'textarea' ? 5 : 3}
+          rows={5}
           value={value?.open_text_value ?? ''}
           onChange={(e) => onChange({ question_id: question.id, open_text_value: e.target.value })}
           placeholder={language === 'ar' ? 'أدخل إجابتك هنا...' : 'Enter your answer here...'}
