@@ -53,7 +53,7 @@ export function SurveyReview() {
   })
 
   if (!respondentRole) {
-    navigate(`/survey/${surveySlug}/begin`, { replace: true })
+    navigate(`/survey/${surveySlug}/start`, { replace: true })
     return null
   }
 

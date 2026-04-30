@@ -215,11 +215,14 @@ export function SurveyForm() {
   const autosaveTimer  = useRef<ReturnType<typeof setInterval> | null>(null)
   const [showModal, setShowModal] = useState(false)
 
+  // respondentRole is included in the key so a role change always triggers a fresh fetch,
+  // preventing a stale 401-error cache from blocking the new session's request.
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['survey-questions', surveySlug, language],
+    queryKey: ['survey-questions', surveySlug, language, respondentRole],
     queryFn:  () => publicApi.getSurveyQuestions(surveySlug!, language),
     enabled:  !!respondentRole && !!surveySlug,
     retry:    false,
+    staleTime: 0,
   })
 
   // Session cookie expired → clear local session so intro re-appears
