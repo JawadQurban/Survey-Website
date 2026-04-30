@@ -31,6 +31,26 @@ def create_option(
     return opt
 
 
+@router.put("/{option_id}", response_model=OptionOut)
+def update_option(
+    option_id: int,
+    body: OptionCreate,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    from app.models.survey import QuestionOption
+    repo = SurveyRepository(db)
+    opt = db.get(QuestionOption, option_id)
+    if not opt:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Option not found")
+    for t in body.translations:
+        repo.upsert_option_translation(opt.id, t.language_code, text=t.text)
+    AdminRepository(db).log_action(current_admin.id, "option_updated", "option", str(option_id))
+    db.commit()
+    db.refresh(opt)
+    return opt
+
+
 @router.delete("/{option_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_option(
     option_id: int,

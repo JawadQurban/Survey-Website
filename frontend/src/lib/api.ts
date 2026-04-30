@@ -96,6 +96,7 @@ export const adminApi = {
 
   // Options
   createOption: (data: object) => api.post('/admin/options', data),
+  updateOption: (id: number, data: object) => api.put(`/admin/options/${id}`, data),
   deleteOption: (id: number) => api.delete(`/admin/options/${id}`),
 
   // Sections

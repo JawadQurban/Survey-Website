@@ -7,7 +7,7 @@ import { PageSpinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import type { Survey, Question, QuestionType } from '@/types/survey'
-import { ArrowLeft, Save, X, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, Save, X, Plus, Trash2, Pencil, CheckCircle2 } from 'lucide-react'
 
 const ROLES = [
   { key: 'ceo',  label: 'CEO'  },
@@ -83,12 +83,16 @@ export function QuestionBuilder() {
   const navigate = useNavigate()
   const qc = useQueryClient()
 
-  const [editingId,   setEditingId]   = useState<number | null>(null)
-  const [editForm,    setEditForm]    = useState<EditForm>({ text_en: '', text_ar: '', question_type: 'open_text', roles: [], has_open_text_option: false, open_text_label_en: '', open_text_label_ar: '', newOptEn: '', newOptAr: '' })
-  const [editError,   setEditError]   = useState<string>('')
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [newQForm,    setNewQForm]    = useState<NewQForm>(EMPTY_NEW_Q)
-  const [roleFilter,  setRoleFilter]  = useState<string>('all')
+  const [editingId,      setEditingId]      = useState<number | null>(null)
+  const [editForm,       setEditForm]       = useState<EditForm>({ text_en: '', text_ar: '', question_type: 'open_text', roles: [], has_open_text_option: false, open_text_label_en: '', open_text_label_ar: '', newOptEn: '', newOptAr: '' })
+  const [editError,      setEditError]      = useState<string>('')
+  const [savedId,        setSavedId]        = useState<number | null>(null)
+  const [editingOptId,   setEditingOptId]   = useState<number | null>(null)
+  const [editOptEn,      setEditOptEn]      = useState('')
+  const [editOptAr,      setEditOptAr]      = useState('')
+  const [showAddForm,    setShowAddForm]    = useState(false)
+  const [newQForm,       setNewQForm]       = useState<NewQForm>(EMPTY_NEW_Q)
+  const [roleFilter,     setRoleFilter]     = useState<string>('all')
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-survey', surveyId],
@@ -100,7 +104,7 @@ export function QuestionBuilder() {
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: object }) =>
       adminApi.updateQuestion(id, payload),
-    onSuccess: () => { invalidate(); setEditingId(null); setEditError('') },
+    onSuccess: (_data, vars) => { invalidate(); setEditingId(null); setEditError(''); setSavedId((vars as {id:number}).id); setTimeout(() => setSavedId(null), 2500) },
     onError: (err: { response?: { status?: number; data?: { detail?: string | { msg: string; loc?: unknown[] }[] } } }) => {
       console.error('[QuestionBuilder] save error:', err)
       const status  = err.response?.status
@@ -131,6 +135,12 @@ export function QuestionBuilder() {
   const deleteOptionMutation = useMutation({
     mutationFn: (id: number) => adminApi.deleteOption(id),
     onSuccess: invalidate,
+  })
+
+  const updateOptionMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: object }) =>
+      adminApi.updateOption(id, payload),
+    onSuccess: () => { invalidate(); setEditingOptId(null) },
   })
 
   const createSectionMutation = useMutation({
@@ -381,7 +391,12 @@ export function QuestionBuilder() {
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-1 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
+                    {savedId === q.id && (
+                      <span className="flex items-center gap-1 text-xs text-green-600 font-medium pr-1">
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Saved
+                      </span>
+                    )}
                     <Button variant="ghost" size="sm" onClick={() => startEdit(q)}>Edit</Button>
                     <button
                       onClick={() => {
@@ -463,21 +478,77 @@ export function QuestionBuilder() {
                       {q.options.filter((o) => o.is_active).map((o) => {
                         const optEn = getTranslation(o.translations, 'en')?.text ?? o.option_key
                         const optAr = getTranslation(o.translations, 'ar')?.text ?? ''
+                        const isEditingOpt = editingOptId === o.id
                         return (
-                          <div key={o.id} className="flex items-center gap-2 bg-tfa-gray-50 px-3 py-2 rounded">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm text-tfa-gray-900">{optEn}</p>
-                              {optAr && <p className="text-xs text-tfa-gray-400" dir="rtl">{optAr}</p>}
-                            </div>
-                            <button
-                              onClick={() => {
-                                if (!window.confirm(`Delete option "${optEn}"?`)) return
-                                deleteOptionMutation.mutate(o.id)
-                              }}
-                              className="p-1 rounded hover:bg-red-50 text-tfa-gray-300 hover:text-red-500 shrink-0"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
+                          <div key={o.id}>
+                            {isEditingOpt ? (
+                              <div className="space-y-2 bg-tfa-gray-50 p-3 rounded border border-tfa-navy/20">
+                                <div className="flex gap-2">
+                                  <input
+                                    className="flex-1 rounded border border-tfa-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
+                                    placeholder="English"
+                                    value={editOptEn}
+                                    onChange={(e) => setEditOptEn(e.target.value)}
+                                  />
+                                  <input
+                                    className="flex-1 rounded border border-tfa-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
+                                    placeholder="Arabic (optional)"
+                                    dir="rtl"
+                                    value={editOptAr}
+                                    onChange={(e) => setEditOptAr(e.target.value)}
+                                  />
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    loading={updateOptionMutation.isPending}
+                                    onClick={() => {
+                                      if (!editOptEn.trim()) return
+                                      updateOptionMutation.mutate({
+                                        id: o.id,
+                                        payload: {
+                                          question_id:   o.question_id,
+                                          option_key:    o.option_key,
+                                          display_order: o.display_order,
+                                          translations: [
+                                            { language_code: 'en', text: editOptEn.trim() },
+                                            ...(editOptAr.trim() ? [{ language_code: 'ar', text: editOptAr.trim() }] : []),
+                                          ],
+                                        },
+                                      })
+                                    }}
+                                  >
+                                    <Save className="h-3 w-3" /> Save
+                                  </Button>
+                                  <Button variant="ghost" size="sm" onClick={() => setEditingOptId(null)}>
+                                    <X className="h-3 w-3" /> Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 bg-tfa-gray-50 px-3 py-2 rounded">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-tfa-gray-900">{optEn}</p>
+                                  {optAr && <p className="text-xs text-tfa-gray-400" dir="rtl">{optAr}</p>}
+                                </div>
+                                <button
+                                  onClick={() => { setEditingOptId(o.id); setEditOptEn(optEn); setEditOptAr(optAr) }}
+                                  className="p-1 rounded hover:bg-tfa-gray-200 text-tfa-gray-400 hover:text-tfa-gray-700 shrink-0"
+                                  title="Edit option"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (!window.confirm(`Delete option "${optEn}"?`)) return
+                                    deleteOptionMutation.mutate(o.id)
+                                  }}
+                                  className="p-1 rounded hover:bg-red-50 text-tfa-gray-300 hover:text-red-500 shrink-0"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            )}
                           </div>
                         )
                       })}
