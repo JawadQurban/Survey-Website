@@ -27,28 +27,28 @@ const SECTOR_REGULATOR: Record<string, string> = {
 // ─── Intro question data ──────────────────────────────────────────────────────
 
 const SECTORS = [
-  { key: 'banking',         badge: 'B', en: 'Banking',        ar: 'البنوك' },
-  { key: 'insurance',       badge: 'I', en: 'Insurance',      ar: 'التأمين' },
+  { key: 'banking',         badge: 'B', en: 'Banking',        ar: 'الخدمات المصرفية' },
+  { key: 'insurance',       badge: 'I', en: 'Insurance',      ar: 'تأمين' },
   { key: 'capital_markets', badge: 'C', en: 'Capital Markets',ar: 'أسواق رأس المال' },
   { key: 'payments',        badge: 'P', en: 'Payments',       ar: 'المدفوعات' },
   { key: 'financing',       badge: 'F', en: 'Financing',      ar: 'التمويل' },
-  { key: 'other',           badge: '?', en: 'Other',          ar: 'أخرى' },
+  { key: 'other',           badge: '?', en: 'Other',          ar: 'أخرى (يرجى التحديد)' },
 ]
 
 const ORG_SIZES = [
-  { key: 'lt_50',     en: 'Less than 50 employees',  ar: 'أقل من 50 موظفاً' },
-  { key: '50_249',    en: '50 – 249 employees',       ar: '50 – 249 موظفاً' },
-  { key: '250_999',   en: '250 – 999 employees',      ar: '250 – 999 موظفاً' },
-  { key: '1000_4999', en: '1,000 – 4,999 employees', ar: '1,000 – 4,999 موظفاً' },
-  { key: 'gte_5000',  en: '5,000 employees or more', ar: '5,000 موظف فأكثر' },
+  { key: 'lt_50',     en: 'Less than 50 employees',  ar: 'أقل من 50 موظف' },
+  { key: '50_249',    en: '50 – 249 employees',       ar: '50 – 249 موظف' },
+  { key: '250_999',   en: '250 – 999 employees',      ar: '250 – 999 موظف' },
+  { key: '1000_4999', en: '1,000 – 4,999 employees', ar: '1,000 – 4,999 موظف' },
+  { key: 'gte_5000',  en: '5,000 employees or more', ar: '5,000+ موظف' },
   { key: 'other',     en: 'Other (please specify)',   ar: 'أخرى (يرجى التحديد)' },
 ]
 
 const ROLES = [
-  { key: 'ceo',   badge: 'CEO',  en: 'CEO / Executive', ar: 'الرئيس التنفيذي / القيادة', descEn: 'C-suite executive or board level', descAr: 'قيادة تنفيذية أو مجلس إدارة' },
-  { key: 'chro',  badge: 'CHRO', en: 'CHRO',            ar: 'مدير الموارد البشرية',       descEn: 'Head of Human Capital / HR',        descAr: 'رئيس الموارد البشرية / رأس المال البشري' },
-  { key: 'ld',    badge: 'LD',   en: 'L&D Manager',     ar: 'مدير التعلم والتطوير',       descEn: 'Head of Learning & Development',    descAr: 'رئيس التعلم والتطوير' },
-  { key: 'other', badge: '?',    en: 'Other',            ar: 'أخرى',                       descEn: 'Please specify below',              descAr: 'يرجى التحديد أدناه' },
+  { key: 'ceo',   badge: 'CEO',  en: 'CEO / Executive', ar: 'الرئيس التنفيذي / مستوى تنفيذي', descEn: 'C-suite executive or board level', descAr: 'قيادة تنفيذية أو مجلس إدارة' },
+  { key: 'chro',  badge: 'CHRO', en: 'CHRO',            ar: 'مدير الموارد البشرية',             descEn: 'Head of Human Capital / HR',        descAr: 'رئيس الموارد البشرية / رأس المال البشري' },
+  { key: 'ld',    badge: 'LD',   en: 'L&D Manager',     ar: 'التعلم والتطوير',                  descEn: 'Head of Learning & Development',    descAr: 'رئيس التعلم والتطوير' },
+  { key: 'other', badge: '?',    en: 'Other',            ar: 'أخرى (يرجى التحديد)',              descEn: 'Please specify below',              descAr: 'يرجى التحديد أدناه' },
 ]
 
 // ─── Intro form (sector / org size / role) ────────────────────────────────────
@@ -91,7 +91,7 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
       {/* Q1: Sector */}
       <div className="px-6 py-5">
         <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
-          {isRTL ? 'ما القطاع الذي تعمل فيه حالياً؟' : 'Which sector are you currently operating in?'}
+          {isRTL ? 'في أي قطاع تعمل حالياً؟' : 'Which sector are you currently operating in?'}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
           {SECTORS.map((s) => (
@@ -137,7 +137,7 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
       <div className="px-6 py-5">
         <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
           {isRTL
-            ? 'ما حجم منشأتك من حيث عدد الموظفين في المملكة العربية السعودية؟'
+            ? 'ما حجم مؤسستك من حيث عدد الموظفين في المملكة السعودية؟'
             : 'What is the size of your organization in terms of number of employees in KSA?'}
         </p>
         <div className="space-y-2 mt-3">
@@ -183,7 +183,7 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
       <div className="px-6 py-5">
         <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
           {isRTL
-            ? 'ما الذي يصف دورك الحالي في المنظمة بشكل أفضل؟'
+            ? 'ما هو الوصف الأنسب لدورك الحالي داخل المنظمة؟'
             : 'What best describes your current role within the organization?'}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
