@@ -46,10 +46,7 @@ export function QuestionRenderer({ question, value, onChange, language }: Questi
     <fieldset className="mb-8">
       <legend className="text-base font-medium text-tfa-gray-900 mb-1 leading-snug">
         {questionText}
-        {question.is_required && (
-          <span className="text-red-500 ms-1 text-sm font-normal">{t('survey.required', language)}</span>
-        )}
-      </legend>
+        </legend>
 
       {helperText && (
         <p className="text-sm text-tfa-gray-500 mb-3">{helperText}</p>
@@ -142,7 +139,7 @@ export function QuestionRenderer({ question, value, onChange, language }: Questi
                   onChange={() => handleOptionToggle('__open_text__')}
                   className="mt-0.5 shrink-0 accent-tfa-navy"
                 />
-                <span className="text-sm text-tfa-gray-800 italic">{openTextLabel}</span>
+                <span className="text-sm text-tfa-gray-800">{openTextLabel}</span>
               </label>
 
               {isSelected('__open_text__') && (

@@ -84,7 +84,6 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
       <div className="px-6 py-5">
         <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
           {isRTL ? 'ما القطاع الذي تعمل فيه حالياً؟' : 'Which sector are you currently operating in?'}
-          <span className="text-red-500 ml-1">*</span>
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
           {SECTORS.map((s) => (
@@ -132,7 +131,6 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
           {isRTL
             ? 'ما حجم منشأتك من حيث عدد الموظفين في المملكة العربية السعودية؟'
             : 'What is the size of your organization in terms of number of employees in KSA?'}
-          <span className="text-red-500 ml-1">*</span>
         </p>
         <div className="space-y-2 mt-3">
           {ORG_SIZES.map((s) => (
@@ -164,7 +162,6 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
           {isRTL
             ? 'ما الذي يصف دورك الحالي في المنظمة بشكل أفضل؟'
             : 'What best describes your current role within the organization?'}
-          <span className="text-red-500 ml-1">*</span>
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
           {ROLES.map((r) => (
