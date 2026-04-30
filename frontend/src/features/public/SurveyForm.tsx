@@ -60,6 +60,7 @@ interface IntroFormProps {
 }
 
 function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
+  const [role,            setRole]            = useState('')
   const [sector,          setSector]          = useState('')
   const [otherSectorText, setOtherSectorText] = useState('')
   const [orgSize,         setOrgSize]         = useState('')
