@@ -1,11 +1,12 @@
 from datetime import timedelta
 
-from fastapi import APIRouter, Cookie, Depends, Request, Response
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_admin
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.limiter import limiter
 from app.models.admin import AdminUser
 from app.schemas.admin import AdminLoginRequest, AdminLoginResponse, AdminUserOut
 from app.services.auth_service import AuthService
@@ -14,7 +15,7 @@ router = APIRouter(prefix="/auth", tags=["admin-auth"])
 
 
 def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
-    max_age_access = int(timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES).total_seconds())
+    max_age_access  = int(timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES).total_seconds())
     max_age_refresh = int(timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS).total_seconds())
 
     response.set_cookie(
@@ -33,15 +34,16 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
         secure=settings.is_production,
         samesite="lax",
         max_age=max_age_refresh,
-        path="/api/admin/auth/refresh",
+        path="/",  # Fixed from "/api/admin/auth/refresh" — cookie must reach all admin endpoints
     )
 
 
 @router.post("/login")
+@limiter.limit("10/minute")   # max 10 login attempts per IP per minute — admin only
 def login(
-    body: AdminLoginRequest,
     request: Request,
     response: Response,
+    body: AdminLoginRequest,
     db: Session = Depends(get_db),
 ):
     ip = request.client.host if request.client else None
@@ -52,12 +54,13 @@ def login(
 
 
 @router.post("/refresh")
+@limiter.limit("30/minute")
 def refresh_token(
+    request: Request,
     response: Response,
     admin_refresh_token: str | None = Cookie(None),
     db: Session = Depends(get_db),
 ):
-    from fastapi import HTTPException, status
     if not admin_refresh_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No refresh token")
     svc = AuthService(db)
@@ -74,8 +77,8 @@ def logout(
 ):
     if admin_refresh_token:
         AuthService(db).logout(admin_refresh_token)
-    response.delete_cookie("admin_access_token")
-    response.delete_cookie("admin_refresh_token")
+    response.delete_cookie("admin_access_token", path="/")
+    response.delete_cookie("admin_refresh_token", path="/")
     return {"message": "Logged out"}
 
 
