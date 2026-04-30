@@ -41,12 +41,14 @@ const ORG_SIZES = [
   { key: '250_999',   en: '250 – 999 employees',      ar: '250 – 999 موظفاً' },
   { key: '1000_4999', en: '1,000 – 4,999 employees', ar: '1,000 – 4,999 موظفاً' },
   { key: 'gte_5000',  en: '5,000 employees or more', ar: '5,000 موظف فأكثر' },
+  { key: 'other',     en: 'Other (please specify)',   ar: 'أخرى (يرجى التحديد)' },
 ]
 
 const ROLES = [
-  { key: 'ceo',  badge: 'CEO',  en: 'CEO / Executive', ar: 'الرئيس التنفيذي / القيادة', descEn: 'C-suite executive or board level',  descAr: 'قيادة تنفيذية أو مجلس إدارة' },
-  { key: 'chro', badge: 'CHRO', en: 'CHRO',            ar: 'مدير الموارد البشرية',       descEn: 'Head of Human Capital / HR',         descAr: 'رئيس الموارد البشرية / رأس المال البشري' },
-  { key: 'ld',   badge: 'LD',   en: 'L&D Manager',     ar: 'مدير التعلم والتطوير',       descEn: 'Head of Learning & Development',     descAr: 'رئيس التعلم والتطوير' },
+  { key: 'ceo',   badge: 'CEO',  en: 'CEO / Executive', ar: 'الرئيس التنفيذي / القيادة', descEn: 'C-suite executive or board level', descAr: 'قيادة تنفيذية أو مجلس إدارة' },
+  { key: 'chro',  badge: 'CHRO', en: 'CHRO',            ar: 'مدير الموارد البشرية',       descEn: 'Head of Human Capital / HR',        descAr: 'رئيس الموارد البشرية / رأس المال البشري' },
+  { key: 'ld',    badge: 'LD',   en: 'L&D Manager',     ar: 'مدير التعلم والتطوير',       descEn: 'Head of Learning & Development',    descAr: 'رئيس التعلم والتطوير' },
+  { key: 'other', badge: '?',    en: 'Other',            ar: 'أخرى',                       descEn: 'Please specify below',              descAr: 'يرجى التحديد أدناه' },
 ]
 
 // ─── Intro form (sector / org size / role) ────────────────────────────────────
@@ -62,7 +64,9 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
   const [sector,          setSector]          = useState('')
   const [otherSectorText, setOtherSectorText] = useState('')
   const [orgSize,         setOrgSize]         = useState('')
+  const [otherOrgText,    setOtherOrgText]    = useState('')
   const [role,            setRole]            = useState('')
+  const [otherRoleText,   setOtherRoleText]   = useState('')
   const [error,           setError]           = useState('')
 
   const handleSubmit = () => {
@@ -70,7 +74,11 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
     if (sector === 'other' && !otherSectorText.trim())
       return setError(isRTL ? 'يرجى تحديد قطاعك'                    : 'Please specify your sector')
     if (!orgSize) return setError(isRTL ? 'يرجى اختيار حجم المنشأة' : 'Please select your organization size')
+    if (orgSize === 'other' && !otherOrgText.trim())
+      return setError(isRTL ? 'يرجى تحديد حجم منشأتك'               : 'Please specify your organization size')
     if (!role)    return setError(isRTL ? 'يرجى اختيار دورك'         : 'Please select your role')
+    if (role === 'other' && !otherRoleText.trim())
+      return setError(isRTL ? 'يرجى تحديد دورك'                     : 'Please specify your role')
     setError('')
     onBegin(sector, orgSize, role)
   }
@@ -148,12 +156,27 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
                 name="orgSize"
                 value={s.key}
                 checked={orgSize === s.key}
-                onChange={() => { setOrgSize(s.key); setError('') }}
+                onChange={() => { setOrgSize(s.key); setOtherOrgText(''); setError('') }}
                 className="accent-tfa-navy"
               />
             </label>
           ))}
         </div>
+
+        {/* "Other" free-text input */}
+        {orgSize === 'other' && (
+          <div className="mt-3">
+            <input
+              type="text"
+              autoFocus
+              className="w-full rounded border border-tfa-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
+              placeholder={isRTL ? 'يرجى تحديد حجم منشأتك' : 'Please specify your organization size'}
+              value={otherOrgText}
+              onChange={(e) => { setOtherOrgText(e.target.value); setError('') }}
+              dir={isRTL ? 'rtl' : 'ltr'}
+            />
+          </div>
+        )}
       </div>
 
       {/* Q3: Role */}
@@ -163,12 +186,12 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
             ? 'ما الذي يصف دورك الحالي في المنظمة بشكل أفضل؟'
             : 'What best describes your current role within the organization?'}
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
           {ROLES.map((r) => (
             <button
               key={r.key}
               type="button"
-              onClick={() => { setRole(r.key); setError('') }}
+              onClick={() => { setRole(r.key); setOtherRoleText(''); setError('') }}
               className={`flex items-start gap-3 w-full border rounded p-4 transition-all ${
                 isRTL ? 'flex-row-reverse text-right' : 'text-left'
               } ${
@@ -189,6 +212,21 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
             </button>
           ))}
         </div>
+
+        {/* "Other" free-text input */}
+        {role === 'other' && (
+          <div className="mt-3">
+            <input
+              type="text"
+              autoFocus
+              className="w-full rounded border border-tfa-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
+              placeholder={isRTL ? 'يرجى تحديد دورك' : 'Please specify your role'}
+              value={otherRoleText}
+              onChange={(e) => { setOtherRoleText(e.target.value); setError('') }}
+              dir={isRTL ? 'rtl' : 'ltr'}
+            />
+          </div>
+        )}
       </div>
 
       {/* Error + Submit */}

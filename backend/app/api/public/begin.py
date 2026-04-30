@@ -17,9 +17,9 @@ VALID_SECTORS = {
     "payments", "financing", "other",
 }
 
-VALID_ORG_SIZES = {"lt_50", "50_249", "250_999", "1000_4999", "gte_5000"}
+VALID_ORG_SIZES = {"lt_50", "50_249", "250_999", "1000_4999", "gte_5000", "other"}
 
-VALID_ROLES = {"ceo", "chro", "ld"}
+VALID_ROLES = {"ceo", "chro", "ld", "other"}
 
 
 class SurveyBeginRequest(BaseModel):

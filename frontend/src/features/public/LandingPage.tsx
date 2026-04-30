@@ -35,14 +35,18 @@ export function LandingPage() {
           </span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-bold text-tfa-gray-800 mb-4 leading-tight">
-          {t('landing.title', language)}
+        <h1 className="text-3xl sm:text-4xl font-bold text-tfa-gray-800 mb-6 leading-tight">
+          {isRTL ? 'دراسة مشهد التدريب' : 'Training Landscape Study'}
         </h1>
-        <p className="text-lg text-tfa-gray-600 font-medium mb-3">
-          {t('landing.subtitle', language)}
+        <p className="text-tfa-gray-600 max-w-2xl mx-auto leading-relaxed mb-4">
+          {isRTL
+            ? 'في إطار مبادرة وطنية استراتيجية تركّز على قطاع الخدمات المالية في المملكة العربية السعودية، نجري استطلاعاً شاملاً لفهم الاحتياجات والأولويات الراهنة والمستقبلية في مجال التعلم والتطوير (L&D) عبر القطاع.'
+            : 'As part of a strategic national initiative focused on the financial services sector in Saudi Arabia, we are conducting a comprehensive survey to better understand current and future learning and development (L&D) needs and priorities across the sector.'}
         </p>
         <p className="text-tfa-gray-500 max-w-xl mx-auto leading-relaxed mb-10">
-          {t('landing.description', language)}
+          {isRTL
+            ? 'ستُسهم رؤيتكم في تشكيل مستقبل تدريب الخدمات المالية في المملكة.'
+            : 'Your insights will help shape the future of financial services training in the Kingdom.'}
         </p>
 
         <Button
@@ -50,7 +54,7 @@ export function LandingPage() {
           onClick={handleBegin}
           disabled={!firstSurvey}
         >
-          {t('landing.cta', language)}
+          {isRTL ? 'ابدأ الاستطلاع' : 'Begin Survey'}
         </Button>
       </div>
 

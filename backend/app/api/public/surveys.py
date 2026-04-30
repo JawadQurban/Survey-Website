@@ -67,10 +67,14 @@ def get_survey_questions(
     session: dict = Depends(get_survey_session),
 ):
     role_str = session.get("role")
-    try:
-        role = RespondentRole(role_str)
-    except ValueError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid role in session")
+    # "other" role sees all questions; standard roles are filtered by visibility_rules
+    if role_str == "other":
+        role = None
+    else:
+        try:
+            role = RespondentRole(role_str)
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid role in session")
 
     repo = SurveyRepository(db)
     survey = repo.get_full(survey_slug)
@@ -83,7 +87,7 @@ def get_survey_questions(
         if not section.is_active:
             continue
         for q in section.questions:
-            if q.is_active and role in [vr.role for vr in q.visibility_rules]:
+            if q.is_active and (role is None or role in [vr.role for vr in q.visibility_rules]):
                 all_questions.append({
                     "id": q.id,
                     "section_id": q.section_id,
