@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { useLanguageStore } from '@/store/languageStore'
 import { publicApi } from '@/lib/api'
-import { t } from '@/lib/i18n'
 import type { SurveyListItem } from '@/types/survey'
 
 export function LandingPage() {
