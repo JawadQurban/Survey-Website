@@ -51,11 +51,13 @@ def update_question(
     if not question:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
 
-    for field in ["question_type", "display_order", "is_required", "has_open_text_option",
-                  "open_text_label_en", "open_text_label_ar", "module"]:
-        val = getattr(body, field, None)
-        if val is not None:
-            setattr(question, field, val)
+    question.question_type        = body.question_type
+    question.display_order        = body.display_order
+    question.is_required          = body.is_required
+    question.has_open_text_option = body.has_open_text_option
+    question.open_text_label_en   = body.open_text_label_en
+    question.open_text_label_ar   = body.open_text_label_ar
+    question.module               = body.module
 
     for t in body.translations:
         repo.upsert_question_translation(question_id, t.language_code, text=t.text, helper_text=t.helper_text)

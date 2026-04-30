@@ -85,6 +85,7 @@ export function QuestionBuilder() {
 
   const [editingId,   setEditingId]   = useState<number | null>(null)
   const [editForm,    setEditForm]    = useState<EditForm>({ text_en: '', text_ar: '', question_type: 'open_text', roles: [], has_open_text_option: false, open_text_label_en: '', open_text_label_ar: '', newOptEn: '', newOptAr: '' })
+  const [editError,   setEditError]   = useState<string>('')
   const [showAddForm, setShowAddForm] = useState(false)
   const [newQForm,    setNewQForm]    = useState<NewQForm>(EMPTY_NEW_Q)
   const [roleFilter,  setRoleFilter]  = useState<string>('all')
@@ -99,7 +100,15 @@ export function QuestionBuilder() {
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: object }) =>
       adminApi.updateQuestion(id, payload),
-    onSuccess: () => { invalidate(); setEditingId(null) },
+    onSuccess: () => { invalidate(); setEditingId(null); setEditError('') },
+    onError: (err: { response?: { data?: { detail?: string | { msg: string }[] } } }) => {
+      const detail = err.response?.data?.detail
+      if (Array.isArray(detail)) {
+        setEditError(detail.map((d) => d.msg).join(', '))
+      } else {
+        setEditError(detail ?? 'Save failed — please check all fields and try again.')
+      }
+    },
   })
 
   const deleteQuestionMutation = useMutation({
@@ -162,6 +171,9 @@ export function QuestionBuilder() {
     }))
 
   const saveEdit = (q: Question) => {
+    const textEn = editForm.text_en.trim()
+    if (!textEn) { setEditError('English question text is required.'); return }
+    setEditError('')
     updateMutation.mutate({
       id: q.id,
       payload: {
@@ -176,7 +188,7 @@ export function QuestionBuilder() {
         module:                q.module,
         visible_to_roles:      editForm.roles,
         translations: [
-          { language_code: 'en', text: editForm.text_en },
+          { language_code: 'en', text: textEn },
           ...(editForm.text_ar.trim() ? [{ language_code: 'ar', text: editForm.text_ar.trim() }] : []),
         ],
       },
@@ -522,11 +534,14 @@ export function QuestionBuilder() {
                     </div>
                   )}
 
+                  {editError && (
+                    <p className="text-xs text-red-500 font-medium">{editError}</p>
+                  )}
                   <div className="flex gap-2">
                     <Button size="sm" onClick={() => saveEdit(q)} loading={updateMutation.isPending}>
                       <Save className="h-3.5 w-3.5" /> Save
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}>
+                    <Button variant="ghost" size="sm" onClick={() => { setEditingId(null); setEditError('') }}>
                       <X className="h-3.5 w-3.5" /> Cancel
                     </Button>
                   </div>
