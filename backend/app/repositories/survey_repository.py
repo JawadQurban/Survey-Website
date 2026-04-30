@@ -156,11 +156,16 @@ class SurveyRepository:
         existing = self.db.execute(
             select(QuestionVisibilityRule).where(QuestionVisibilityRule.question_id == question_id)
         ).scalars().all()
-        for r in existing:
-            self.db.delete(r)
-        self.db.flush()  # DELETE must reach the DB before INSERT to avoid duplicate-key error
-        for role in roles:
-            self.db.add(QuestionVisibilityRule(question_id=question_id, role=role))
+        existing_roles = {r.role for r in existing}
+        desired_roles  = set(roles)
+        # Remove roles that are no longer wanted
+        for rule in existing:
+            if rule.role not in desired_roles:
+                self.db.delete(rule)
+        # Add only roles that don't already exist
+        for role in desired_roles:
+            if role not in existing_roles:
+                self.db.add(QuestionVisibilityRule(question_id=question_id, role=role))
         self.db.flush()
 
     def get_full_admin(self, survey_id: int) -> Survey | None:
