@@ -1,18 +1,44 @@
 import logging
+from urllib.parse import urlparse
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
+from app.core.limiter import limiter
 from app.core.logging import configure_logging
 from app.core.database import check_db_connection
 
 from app.api.public import verify, surveys, submissions, begin as survey_begin
-from app.api.admin import auth, organizations, contacts, surveys as admin_surveys, questions, sections as admin_sections, submissions as admin_submissions, dashboard, cms, options as admin_options
+from app.api.admin import (
+    auth, organizations, contacts,
+    surveys as admin_surveys, questions, sections as admin_sections,
+    submissions as admin_submissions, dashboard, cms, options as admin_options,
+)
 
 configure_logging()
 logger = logging.getLogger(__name__)
+
+# ─── Rate limiter (shared across routers) ────────────────────────────────────
+limiter = Limiter(key_func=get_remote_address, enabled=settings.RATE_LIMIT_ENABLED)
+
+
+# ─── Security headers middleware ──────────────────────────────────────────────
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next) -> Response:
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        if settings.is_production:
+            response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
+        return response
 
 
 def create_app() -> FastAPI:
@@ -23,6 +49,14 @@ def create_app() -> FastAPI:
         redoc_url="/redoc" if not settings.is_production else None,
     )
 
+    # Rate limiter
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+    # Security headers
+    app.add_middleware(SecurityHeadersMiddleware)
+
+    # CORS — single explicit origin only
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[settings.FRONTEND_URL],
@@ -31,28 +65,32 @@ def create_app() -> FastAPI:
         allow_headers=["Content-Type", "Authorization", "Accept", "Accept-Language"],
     )
 
+    # TrustedHost — restrict to actual domain in production
     if settings.is_production:
-        app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
+        frontend_host = urlparse(settings.FRONTEND_URL).netloc or settings.FRONTEND_URL
+        backend_host  = urlparse(settings.BACKEND_URL).netloc  or settings.BACKEND_URL
+        allowed = list({frontend_host, backend_host, "localhost", "127.0.0.1"})
+        app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed)
 
     # Public routes
     public_prefix = "/api/public"
-    app.include_router(verify.router, prefix=public_prefix)
-    app.include_router(surveys.router, prefix=public_prefix)
-    app.include_router(survey_begin.router, prefix=public_prefix)
-    app.include_router(submissions.router, prefix=public_prefix)
+    app.include_router(verify.router,         prefix=public_prefix)
+    app.include_router(surveys.router,         prefix=public_prefix)
+    app.include_router(survey_begin.router,    prefix=public_prefix)
+    app.include_router(submissions.router,     prefix=public_prefix)
 
     # Admin routes
     admin_prefix = "/api/admin"
-    app.include_router(auth.router, prefix=admin_prefix)
-    app.include_router(organizations.router, prefix=admin_prefix)
-    app.include_router(contacts.router, prefix=admin_prefix)
-    app.include_router(admin_surveys.router, prefix=admin_prefix)
-    app.include_router(questions.router, prefix=admin_prefix)
-    app.include_router(admin_sections.router, prefix=admin_prefix)
-    app.include_router(admin_submissions.router, prefix=admin_prefix)
-    app.include_router(dashboard.router, prefix=admin_prefix)
-    app.include_router(cms.router, prefix=admin_prefix)
-    app.include_router(admin_options.router, prefix=admin_prefix)
+    app.include_router(auth.router,             prefix=admin_prefix)
+    app.include_router(organizations.router,    prefix=admin_prefix)
+    app.include_router(contacts.router,         prefix=admin_prefix)
+    app.include_router(admin_surveys.router,    prefix=admin_prefix)
+    app.include_router(questions.router,        prefix=admin_prefix)
+    app.include_router(admin_sections.router,   prefix=admin_prefix)
+    app.include_router(admin_submissions.router,prefix=admin_prefix)
+    app.include_router(dashboard.router,        prefix=admin_prefix)
+    app.include_router(cms.router,              prefix=admin_prefix)
+    app.include_router(admin_options.router,    prefix=admin_prefix)
 
     @app.get("/health")
     def health():
