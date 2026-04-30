@@ -30,6 +30,42 @@ SURVEY_SLUG = 'tfa-training-landscape-2025'
 #   other        : True → add has_open_text_option
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ─── Correct display order (matches per-role Excel survey sequence) ───────────
+# CEO  : 01 02 04 06 07 11 12 13 19 20 21 22 29
+# CHRO : 01 02 03 04 05 06 07 11 12 13 14 19 20 21 23 08 09 10 22 28 27 15 16 17 18
+# L&D  : 01 02 03 05 08 10 06 07 11 12 13 14 16 17 18 19 20 21 22 27 24 25 23 26
+QUESTION_ORDER = [
+    'q01_training_headcount',
+    'q02_ld_budget',
+    'q03_ld_proportion',
+    'q04_build_vs_buy',
+    'q05_overseas_vs_incountry',
+    'q06_economic_impact',
+    'q07_budget_reduction',
+    'q11_current_providers',
+    'q12_provider_gaps',
+    'q13_fa_awareness',
+    'q14_fa_improvement',
+    'q19_training_formats',
+    'q20_arabic_delivery',
+    'q21_delivery_format',
+    'q23_digital_platforms',
+    'q08_participant_levels',
+    'q09_prioritize_levels',
+    'q10_training_hours',
+    'q22_regulatory_proportion',
+    'q28_growing_capabilities',
+    'q27_training_topics',
+    'q15_fa_product_awareness',
+    'q16_competency_framework',
+    'q17_market_reports',
+    'q18_graduate_program',
+    'q24_certifications_pct',
+    'q25_cert_types',
+    'q26_contract_timing',
+    'q29_capability_gaps_ceo',
+]
+
 QUESTIONS = [
     {
         'key': 'q01_training_headcount',
@@ -521,8 +557,9 @@ def run(db: Session):
         db.execute(sa_delete(Question).where(Question.id.in_(existing_q_ids)))
         db.flush()
 
-    # 4. Create all questions
-    for order, qdef in enumerate(QUESTIONS):
+    # 4. Sort questions into the correct Excel survey order then create them
+    ordered = sorted(QUESTIONS, key=lambda q: QUESTION_ORDER.index(q['key']))
+    for order, qdef in enumerate(ordered):
         q = Question(
             section_id=section.id,
             question_key=qdef['key'],
