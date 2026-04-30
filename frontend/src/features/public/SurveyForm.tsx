@@ -14,28 +14,24 @@ import type { AxiosError } from 'axios'
 
 const AUTOSAVE_INTERVAL_MS = 30_000
 
-// Default regulator per sector — sent to keep older backend versions happy.
-// The backend no longer validates this field; it is silently ignored once deployed.
+// Sent to keep older backend versions happy (field is ignored once server restarts).
 const SECTOR_REGULATOR: Record<string, string> = {
-  banks:          'sama',
-  insurance:      'ia',
-  capital_market: 'cma',
-  fintech:        'sama',
-  financing:      'sama',
-  regulatory:     'other',
+  banking:         'sama',
+  insurance:       'ia',
+  capital_markets: 'cma',
+  payments:        'sama',
+  financing:       'sama',
 }
 
 // ─── Intro question data ──────────────────────────────────────────────────────
 
 const SECTORS = [
-  { key: 'banks',          badge: 'B', en: 'Banks',                       ar: 'البنوك',                    subEn: 'Bank licensed by SAMA',                subAr: 'بنك مرخص من ساما' },
-  { key: 'insurance',      badge: 'I', en: 'Insurance',                   ar: 'التأمين',                   subEn: 'Insurance / Reinsurance company',      subAr: 'شركة تأمين / إعادة تأمين' },
-  { key: 'capital_market', badge: 'C', en: 'Capital Market / Investment', ar: 'السوق المالية / الاستثمار', subEn: 'CMA-licensed company',                 subAr: 'شركة مرخصة من هيئة السوق المالية' },
-  { key: 'fintech',        badge: 'F', en: 'FinTech / Payments',          ar: 'الفنتك / المدفوعات',        subEn: 'Financial technology or payments co.', subAr: 'شركة تقنية مالية أو مدفوعات' },
-  { key: 'financing',      badge: '$', en: 'Financing',                   ar: 'التمويل',                   subEn: 'Licensed financing company',           subAr: 'شركة تمويل مرخصة' },
-  { key: 'regulatory',     badge: 'R', en: 'Regulatory Body',             ar: 'جهة تنظيمية',               subEn: 'SAMA / Capital Market / Insurance',    subAr: 'ساما / السوق المالية / التأمين' },
-  { key: 'non_financial',  badge: 'N', en: 'Non-Financial Sector',        ar: 'قطاع غير مالي',             subEn: 'Non-financial sector company',         subAr: 'شركة من قطاع غير مالي' },
-  { key: 'government',     badge: 'G', en: 'Government Body',             ar: 'جهة حكومية',                subEn: 'Ministry or government entity',        subAr: 'وزارة أو هيئة حكومية' },
+  { key: 'banking',         badge: 'B', en: 'Banking',        ar: 'البنوك' },
+  { key: 'insurance',       badge: 'I', en: 'Insurance',      ar: 'التأمين' },
+  { key: 'capital_markets', badge: 'C', en: 'Capital Markets',ar: 'أسواق رأس المال' },
+  { key: 'payments',        badge: 'P', en: 'Payments',       ar: 'المدفوعات' },
+  { key: 'financing',       badge: 'F', en: 'Financing',      ar: 'التمويل' },
+  { key: 'other',           badge: '?', en: 'Other',          ar: 'أخرى' },
 ]
 
 const ORG_SIZES = [
@@ -62,15 +58,18 @@ interface IntroFormProps {
 }
 
 function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
-  const [sector,  setSector]  = useState('')
-  const [orgSize, setOrgSize] = useState('')
-  const [role,    setRole]    = useState('')
-  const [error,   setError]   = useState('')
+  const [sector,          setSector]          = useState('')
+  const [otherSectorText, setOtherSectorText] = useState('')
+  const [orgSize,         setOrgSize]         = useState('')
+  const [role,            setRole]            = useState('')
+  const [error,           setError]           = useState('')
 
   const handleSubmit = () => {
-    if (!sector)  return setError(isRTL ? 'يرجى اختيار القطاع'         : 'Please select your sector')
-    if (!orgSize) return setError(isRTL ? 'يرجى اختيار حجم المنشأة'    : 'Please select your organization size')
-    if (!role)    return setError(isRTL ? 'يرجى اختيار دورك'            : 'Please select your role')
+    if (!sector)  return setError(isRTL ? 'يرجى اختيار القطاع'      : 'Please select your sector')
+    if (sector === 'other' && !otherSectorText.trim())
+      return setError(isRTL ? 'يرجى تحديد قطاعك'                    : 'Please specify your sector')
+    if (!orgSize) return setError(isRTL ? 'يرجى اختيار حجم المنشأة' : 'Please select your organization size')
+    if (!role)    return setError(isRTL ? 'يرجى اختيار دورك'         : 'Please select your role')
     setError('')
     onBegin(sector, orgSize, role)
   }
@@ -86,13 +85,13 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
           {isRTL ? 'ما القطاع الذي تعمل فيه حالياً؟' : 'Which sector are you currently operating in?'}
           <span className="text-red-500 ml-1">*</span>
         </p>
-        <div className="grid grid-cols-2 gap-2 mt-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
           {SECTORS.map((s) => (
             <button
               key={s.key}
               type="button"
-              onClick={() => { setSector(s.key); setError('') }}
-              className={`flex items-start gap-3 w-full border rounded p-3 transition-all ${
+              onClick={() => { setSector(s.key); setOtherSectorText(''); setError('') }}
+              className={`flex items-center gap-2 w-full border rounded p-3 transition-all ${
                 isRTL ? 'flex-row-reverse text-right' : 'text-left'
               } ${
                 sector === s.key
@@ -103,15 +102,27 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
               <span className={`shrink-0 w-8 h-8 rounded flex items-center justify-center text-sm font-bold ${
                 sector === s.key ? 'bg-tfa-navy text-white' : 'bg-tfa-gray-100 text-tfa-gray-600'
               }`}>{s.badge}</span>
-              <div>
-                <p className={`text-sm font-semibold ${sector === s.key ? 'text-tfa-navy' : 'text-tfa-gray-800'}`}>
-                  {isRTL ? s.ar : s.en}
-                </p>
-                <p className="text-xs text-tfa-gray-500 mt-0.5">{isRTL ? s.subAr : s.subEn}</p>
-              </div>
+              <p className={`text-sm font-semibold ${sector === s.key ? 'text-tfa-navy' : 'text-tfa-gray-800'}`}>
+                {isRTL ? s.ar : s.en}
+              </p>
             </button>
           ))}
         </div>
+
+        {/* "Other" free-text input */}
+        {sector === 'other' && (
+          <div className="mt-3">
+            <input
+              type="text"
+              autoFocus
+              className="w-full rounded border border-tfa-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
+              placeholder={isRTL ? 'يرجى تحديد قطاعك' : 'Please specify your sector'}
+              value={otherSectorText}
+              onChange={(e) => { setOtherSectorText(e.target.value); setError('') }}
+              dir={isRTL ? 'rtl' : 'ltr'}
+            />
+          </div>
+        )}
       </div>
 
       {/* Q2: Org Size */}

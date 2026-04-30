@@ -13,8 +13,8 @@ from app.security.jwt import create_access_token
 router = APIRouter(prefix="/surveys", tags=["public-survey-begin"])
 
 VALID_SECTORS = {
-    "banks", "insurance", "capital_market", "fintech",
-    "financing", "regulatory", "non_financial", "government",
+    "banking", "insurance", "capital_markets",
+    "payments", "financing", "other",
 }
 
 VALID_ORG_SIZES = {"lt_50", "50_249", "250_999", "1000_4999", "gte_5000"}
