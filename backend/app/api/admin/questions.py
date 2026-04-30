@@ -45,28 +45,39 @@ def update_question(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    repo = SurveyRepository(db)
+    import traceback
     from app.models.survey import Question
+
+    repo = SurveyRepository(db)
     question = db.get(Question, question_id)
     if not question:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
 
-    question.question_type        = body.question_type.value
-    question.display_order        = body.display_order
-    question.is_required          = body.is_required
-    question.has_open_text_option = body.has_open_text_option
-    question.open_text_label_en   = body.open_text_label_en
-    question.open_text_label_ar   = body.open_text_label_ar
-    question.module               = body.module
+    try:
+        question.question_type        = body.question_type.value
+        question.display_order        = body.display_order
+        question.is_required          = body.is_required
+        question.has_open_text_option = body.has_open_text_option
+        question.open_text_label_en   = body.open_text_label_en
+        question.open_text_label_ar   = body.open_text_label_ar
+        question.module               = body.module
 
-    for t in body.translations:
-        repo.upsert_question_translation(question_id, t.language_code, text=t.text, helper_text=t.helper_text)
-    repo.set_visibility_rules(question_id, body.visible_to_roles)
+        for t in body.translations:
+            repo.upsert_question_translation(question_id, t.language_code, text=t.text, helper_text=t.helper_text)
+        repo.set_visibility_rules(question_id, body.visible_to_roles)
 
-    AdminRepository(db).log_action(current_admin.id, "question_updated", "question", str(question_id))
-    db.commit()
-    db.refresh(question)
-    return question
+        AdminRepository(db).log_action(current_admin.id, "question_updated", "question", str(question_id))
+        db.commit()
+        db.refresh(question)
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}",
+        )
+
+    # Reload with all relationships for the response
+    return db.get(Question, question_id)
 
 
 @router.delete("/{question_id}", status_code=status.HTTP_204_NO_CONTENT)
