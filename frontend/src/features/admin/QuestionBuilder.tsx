@@ -101,12 +101,16 @@ export function QuestionBuilder() {
     mutationFn: ({ id, payload }: { id: number; payload: object }) =>
       adminApi.updateQuestion(id, payload),
     onSuccess: () => { invalidate(); setEditingId(null); setEditError('') },
-    onError: (err: { response?: { data?: { detail?: string | { msg: string }[] } } }) => {
-      const detail = err.response?.data?.detail
+    onError: (err: { response?: { status?: number; data?: { detail?: string | { msg: string; loc?: unknown[] }[] } } }) => {
+      console.error('[QuestionBuilder] save error:', err)
+      const status  = err.response?.status
+      const detail  = err.response?.data?.detail
       if (Array.isArray(detail)) {
-        setEditError(detail.map((d) => d.msg).join(', '))
+        setEditError(detail.map((d) => `${d.loc?.slice(-1)[0] ?? ''}: ${d.msg}`.replace(/^: /, '')).join(' | '))
+      } else if (typeof detail === 'string') {
+        setEditError(`[${status}] ${detail}`)
       } else {
-        setEditError(detail ?? 'Save failed — please check all fields and try again.')
+        setEditError(`[${status ?? 'network'}] Save failed — open browser DevTools console for details.`)
       }
     },
   })

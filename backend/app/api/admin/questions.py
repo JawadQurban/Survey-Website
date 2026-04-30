@@ -51,7 +51,7 @@ def update_question(
     if not question:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
 
-    question.question_type        = body.question_type
+    question.question_type        = body.question_type.value
     question.display_order        = body.display_order
     question.is_required          = body.is_required
     question.has_open_text_option = body.has_open_text_option
