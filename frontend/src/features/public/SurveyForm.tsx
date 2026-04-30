@@ -14,6 +14,17 @@ import type { AxiosError } from 'axios'
 
 const AUTOSAVE_INTERVAL_MS = 30_000
 
+// Default regulator per sector — sent to keep older backend versions happy.
+// The backend no longer validates this field; it is silently ignored once deployed.
+const SECTOR_REGULATOR: Record<string, string> = {
+  banks:          'sama',
+  insurance:      'ia',
+  capital_market: 'cma',
+  fintech:        'sama',
+  financing:      'sama',
+  regulatory:     'other',
+}
+
 // ─── Intro question data ──────────────────────────────────────────────────────
 
 const SECTORS = [
@@ -228,9 +239,10 @@ export function SurveyForm() {
   const beginMutation = useMutation({
     mutationFn: (params: { sector: string; orgSize: string; role: string }) =>
       publicApi.beginSurvey(surveySlug!, {
-        sector:   params.sector,
-        org_size: params.orgSize,
-        role:     params.role,
+        sector:    params.sector,
+        org_size:  params.orgSize,
+        role:      params.role,
+        regulator: SECTOR_REGULATOR[params.sector] ?? null,
       }),
     onSuccess: (_data, variables) => {
       setSession({
