@@ -158,6 +158,7 @@ class SurveyRepository:
         ).scalars().all()
         for r in existing:
             self.db.delete(r)
+        self.db.flush()  # DELETE must reach the DB before INSERT to avoid duplicate-key error
         for role in roles:
             self.db.add(QuestionVisibilityRule(question_id=question_id, role=role))
         self.db.flush()
