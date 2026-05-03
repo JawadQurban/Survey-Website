@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import type { AxiosError } from 'axios'
@@ -20,6 +20,7 @@ export function SurveyReview() {
   const { getAllAnswers, answers, clearSession, respondentRole } = useSurveyStore()
   const [submitError, setSubmitError] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const submittedRef = useRef(false)  // prevents the no-session guard from firing after submission
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['survey-questions', surveySlug, language],
@@ -44,6 +45,7 @@ export function SurveyReview() {
       }),
     onSuccess: (res) => {
       const subId = res.data.id
+      submittedRef.current = true   // mark before clearSession to block the guard
       clearSession()
       navigate(`/survey/${surveySlug}/thank-you?ref=${subId}`)
     },
@@ -52,7 +54,7 @@ export function SurveyReview() {
     },
   })
 
-  if (!respondentRole) {
+  if (!respondentRole && !submittedRef.current) {
     navigate(`/survey/${surveySlug}/start`, { replace: true })
     return null
   }
