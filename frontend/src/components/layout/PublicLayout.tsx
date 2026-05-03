@@ -37,8 +37,8 @@ export function PublicLayout() {
         <div className="mx-auto max-w-5xl px-4 py-5 text-center">
           <p className="text-xs text-tfa-gray-400">
             {isRTL
-              ? '© 2025 الأكاديمية المالية. جميع الحقوق محفوظة.'
-              : '© 2025 The Financial Academy. All rights reserved.'}
+              ? '© 2026 الأكاديمية المالية. جميع الحقوق محفوظة.'
+              : '© 2026 The Financial Academy. All rights reserved.'}
           </p>
         </div>
       </footer>
