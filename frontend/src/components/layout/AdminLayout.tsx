@@ -1,4 +1,5 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { adminApi } from '@/lib/api'
 import { useLanguageStore } from '@/store/languageStore'
@@ -24,11 +25,18 @@ export function AdminLayout() {
   const { admin, setAdmin } = useAuthStore()
   const { language } = useLanguageStore()
   const navigate = useNavigate()
+  const qc = useQueryClient()
 
   const handleLogout = async () => {
-    await adminApi.logout()
-    setAdmin(null)
-    navigate('/admin/login')
+    try {
+      await adminApi.logout()
+    } catch {
+      // Even if the API call fails, clear the local session
+    } finally {
+      setAdmin(null)
+      qc.clear()           // wipe all cached queries so getMe doesn't restore the session
+      navigate('/admin/login', { replace: true })
+    }
   }
 
   return (

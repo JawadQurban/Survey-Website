@@ -77,8 +77,10 @@ def logout(
 ):
     if admin_refresh_token:
         AuthService(db).logout(admin_refresh_token)
-    response.delete_cookie("admin_access_token", path="/")
+    # Delete with both paths — covers cookies set before and after the path fix
+    response.delete_cookie("admin_access_token",  path="/")
     response.delete_cookie("admin_refresh_token", path="/")
+    response.delete_cookie("admin_refresh_token", path="/api/admin/auth/refresh")
     return {"message": "Logged out"}
 
 
