@@ -55,8 +55,8 @@ export function LandingPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
         {[
           {
-            icon: '15',
-            label: isRTL ? 'دقيقة تقريباً' : 'minutes approx.',
+            icon: '5-10',
+            label: isRTL ? 'دقائق تقريباً' : 'minutes approx.',
             desc: isRTL ? 'وقت إتمام الاستطلاع' : 'Survey completion time',
           },
           {

@@ -345,10 +345,11 @@ export function SurveyForm() {
       </div>
 
       <div className="bg-white border border-tfa-gray-200 rounded shadow-card divide-y divide-tfa-gray-100">
-        {allQuestions.map((question) => (
+        {allQuestions.map((question, idx) => (
           <div key={question.id} className="px-6 py-5">
             <QuestionRenderer
               question={question}
+              questionNumber={idx + 1}
               value={answers[question.id]}
               onChange={setAnswer}
               language={language}

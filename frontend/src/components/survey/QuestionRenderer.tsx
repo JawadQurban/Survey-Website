@@ -6,12 +6,13 @@ import { getTranslation, t } from '@/lib/i18n'
 
 interface QuestionRendererProps {
   question: Question
+  questionNumber?: number
   value: AnswerInput | undefined
   onChange: (answer: AnswerInput) => void
   language: Language
 }
 
-export function QuestionRenderer({ question, value, onChange, language }: QuestionRendererProps) {
+export function QuestionRenderer({ question, questionNumber, value, onChange, language }: QuestionRendererProps) {
   const trans = getTranslation(question.translations, language)
   const questionText = trans?.text ?? ''
   const helperText = trans?.helper_text
@@ -45,6 +46,11 @@ export function QuestionRenderer({ question, value, onChange, language }: Questi
   return (
     <fieldset className="mb-8">
       <legend className="text-base font-medium text-tfa-gray-900 mb-1 leading-snug">
+        {questionNumber && (
+          <span className="inline-block text-tfa-navy font-bold me-2">
+            {language === 'ar' ? `${questionNumber}.` : `Q${questionNumber}.`}
+          </span>
+        )}
         {questionText}
         </legend>
 

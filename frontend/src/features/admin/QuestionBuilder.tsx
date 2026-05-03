@@ -428,23 +428,55 @@ export function QuestionBuilder() {
                         <CheckCircle2 className="h-3.5 w-3.5" /> Saved
                       </span>
                     )}
-                    {/* Reorder buttons */}
-                    <button
-                      onClick={() => moveQuestion(q, 'up')}
-                      disabled={idx === 0}
-                      className="p-1 rounded hover:bg-tfa-gray-100 text-tfa-gray-400 hover:text-tfa-gray-700 disabled:opacity-20 disabled:cursor-not-allowed"
-                      title="Move up"
-                    >
-                      <ChevronUp className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => moveQuestion(q, 'down')}
-                      disabled={idx === visibleQuestions.length - 1}
-                      className="p-1 rounded hover:bg-tfa-gray-100 text-tfa-gray-400 hover:text-tfa-gray-700 disabled:opacity-20 disabled:cursor-not-allowed"
-                      title="Move down"
-                    >
-                      <ChevronDown className="h-4 w-4" />
-                    </button>
+                    {/* Reorder: editable position number + arrows */}
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        onClick={() => moveQuestion(q, 'up')}
+                        disabled={idx === 0}
+                        className="p-1 rounded hover:bg-tfa-gray-100 text-tfa-gray-400 hover:text-tfa-gray-700 disabled:opacity-20 disabled:cursor-not-allowed"
+                        title="Move up"
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </button>
+                      <input
+                        type="number"
+                        min={1}
+                        max={allQuestions.length}
+                        value={idx + 1}
+                        title="Question position — type a number to move"
+                        className="w-9 text-center text-xs rounded border border-tfa-gray-300 py-0.5 focus:outline-none focus:ring-1 focus:ring-tfa-navy text-tfa-gray-600 font-mono"
+                        onChange={(e) => {
+                          const target = Number(e.target.value) - 1
+                          if (isNaN(target) || target < 0 || target >= allQuestions.length) return
+                          const dest = allQuestions[target]
+                          if (!dest || dest.id === q.id) return
+                          reorderMutation.mutate({ id: q.id, payload: {
+                            section_id: q.section_id, question_key: q.question_key,
+                            question_type: q.question_type, display_order: dest.display_order,
+                            is_required: q.is_required, has_open_text_option: q.has_open_text_option,
+                            open_text_label_en: q.open_text_label_en, open_text_label_ar: q.open_text_label_ar,
+                            module: q.module, visible_to_roles: q.visibility_rules.map((r) => r.role),
+                            translations: q.translations.map((t) => ({ language_code: t.language_code, text: t.text })),
+                          }})
+                          reorderMutation.mutate({ id: dest.id, payload: {
+                            section_id: dest.section_id, question_key: dest.question_key,
+                            question_type: dest.question_type, display_order: q.display_order,
+                            is_required: dest.is_required, has_open_text_option: dest.has_open_text_option,
+                            open_text_label_en: dest.open_text_label_en, open_text_label_ar: dest.open_text_label_ar,
+                            module: dest.module, visible_to_roles: dest.visibility_rules.map((r) => r.role),
+                            translations: dest.translations.map((t) => ({ language_code: t.language_code, text: t.text })),
+                          }})
+                        }}
+                      />
+                      <button
+                        onClick={() => moveQuestion(q, 'down')}
+                        disabled={idx === visibleQuestions.length - 1}
+                        className="p-1 rounded hover:bg-tfa-gray-100 text-tfa-gray-400 hover:text-tfa-gray-700 disabled:opacity-20 disabled:cursor-not-allowed"
+                        title="Move down"
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </button>
+                    </div>
                     <Button variant="ghost" size="sm" onClick={() => startEdit(q)}>Edit</Button>
                     <button
                       onClick={() => {

@@ -11,9 +11,14 @@ export function PublicLayout() {
         <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="The Financial Academy" className="h-7 w-auto" />
-            <span className="text-sm text-white/80 hidden sm:block">
-              {isRTL ? 'الأكاديمية المالية' : 'The Financial Academy'}
-            </span>
+            <div className="hidden sm:flex flex-col leading-tight">
+              <span className="text-sm text-white/80">
+                {isRTL ? 'الأكاديمية المالية' : 'The Financial Academy'}
+              </span>
+              <span className="text-xs text-white/50 font-medium tracking-wide">
+                {isRTL ? '#معاً_نصنع_الأثر' : '#Together_we_make_impact'}
+              </span>
+            </div>
           </div>
           <button
             onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
