@@ -140,7 +140,7 @@ def get_survey_questions(
         if not section.is_active:
             continue
         for q in section.questions:
-            if q.is_active and (role is None or role in [vr.role for vr in q.visibility_rules]):
+            if q.is_active and not q.is_intro and (role is None or role in [vr.role for vr in q.visibility_rules]):
                 all_questions.append({
                     "id": q.id,
                     "section_id": q.section_id,
