@@ -59,6 +59,7 @@ export interface Question {
   display_order: number
   is_required: boolean
   is_active: boolean
+  is_intro: boolean
   has_open_text_option: boolean
   open_text_label_en: string | null
   open_text_label_ar: string | null

@@ -37,6 +37,53 @@ def list_active_surveys(
     return result
 
 
+@router.get("/{survey_slug}/intro-questions")
+def get_intro_questions(
+    survey_slug: str,
+    language: str = Query("en"),
+    db: Session = Depends(get_db),
+):
+    """Returns questions marked as intro (is_intro=True) — no session required."""
+    repo = SurveyRepository(db)
+    survey = repo.get_full(survey_slug)
+    if not survey:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Survey not found")
+
+    intro_questions = []
+    for section in survey.sections:
+        if not section.is_active:
+            continue
+        for q in sorted(section.questions, key=lambda x: x.display_order):
+            if not q.is_active or not q.is_intro:
+                continue
+            translation = next(
+                (t for t in q.translations if t.language_code == language),
+                next((t for t in q.translations if t.language_code == "en"), None),
+            )
+            intro_questions.append({
+                "id":                  q.id,
+                "question_key":        q.question_key,
+                "question_type":       q.question_type,
+                "display_order":       q.display_order,
+                "is_required":         q.is_required,
+                "has_open_text_option":q.has_open_text_option,
+                "open_text_label_en":  q.open_text_label_en,
+                "open_text_label_ar":  q.open_text_label_ar,
+                "translations": [{"id": t.id, "language_code": t.language_code,
+                                  "text": t.text, "helper_text": t.helper_text}
+                                 for t in q.translations],
+                "options": [
+                    {"id": o.id, "question_id": o.question_id, "option_key": o.option_key,
+                     "display_order": o.display_order, "is_active": o.is_active,
+                     "translations": [{"id": ot.id, "language_code": ot.language_code, "text": ot.text}
+                                      for ot in o.translations]}
+                    for o in q.options if o.is_active
+                ],
+                "visibility_rules": [],
+            })
+    return intro_questions
+
+
 @router.get("/{survey_slug}/overview")
 def get_survey_overview(
     survey_slug: str,

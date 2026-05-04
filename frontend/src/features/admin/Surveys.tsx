@@ -182,7 +182,11 @@ function CreateSurveyModal({ onClose }: { onClose: () => void }) {
 
   const mut = useMutation({
     mutationFn: () => adminApi.createSurvey(toApiPayload(form, true)),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-surveys'] }); onClose() },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-surveys'] })
+      qc.invalidateQueries({ queryKey: ['active-surveys'] })
+      onClose()
+    },
     onError: (err: any) => setError(err?.response?.data?.detail ?? 'Failed to create survey'),
   })
 
@@ -239,7 +243,11 @@ function EditSurveyModal({ survey, onClose }: { survey: Survey; onClose: () => v
 
   const mut = useMutation({
     mutationFn: () => adminApi.updateSurvey(survey.id, toApiPayload(form, false)),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-surveys'] }); onClose() },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-surveys'] })
+      qc.invalidateQueries({ queryKey: ['active-surveys'] })  // clear public cache so settings apply immediately
+      onClose()
+    },
     onError: (err: any) => setError(err?.response?.data?.detail ?? 'Failed to save'),
   })
 

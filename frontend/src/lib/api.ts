@@ -44,6 +44,9 @@ export const publicApi = {
   getSurveyOverview: (slug: string, language: string) =>
     api.get(`/public/surveys/${slug}/overview`, { params: { language } }),
 
+  getIntroQuestions: (slug: string, language: string) =>
+    api.get(`/public/surveys/${slug}/intro-questions`, { params: { language } }),
+
   getSurveyQuestions: (slug: string, language: string) =>
     api.get(`/public/surveys/${slug}/questions`, { params: { language } }),
 

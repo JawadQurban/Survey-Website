@@ -68,9 +68,12 @@ def update_survey(
     if not survey:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Survey not found")
 
+    from sqlalchemy.orm.attributes import flag_modified
     updates = body.model_dump(exclude_none=True, exclude={"translations"})
     for k, v in updates.items():
         setattr(survey, k, v)
+        if k == "settings":
+            flag_modified(survey, "settings")  # JSON columns need explicit dirty-marking
 
     if body.translations:
         for t in body.translations:

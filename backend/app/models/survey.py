@@ -104,6 +104,7 @@ class Question(Base):
     display_order: Mapped[int] = mapped_column(Integer, default=0)
     is_required: Mapped[bool] = mapped_column(Boolean, default=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_intro: Mapped[bool] = mapped_column(Boolean, default=False)
     has_open_text_option: Mapped[bool] = mapped_column(Boolean, default=False)
     open_text_label_en: Mapped[str | None] = mapped_column(String(255))
     open_text_label_ar: Mapped[str | None] = mapped_column(String(255))

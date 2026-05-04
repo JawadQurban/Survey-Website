@@ -24,6 +24,7 @@ def create_question(
         question_type=body.question_type,
         display_order=body.display_order,
         is_required=body.is_required,
+        is_intro=body.is_intro,
         has_open_text_option=body.has_open_text_option,
         open_text_label_en=body.open_text_label_en,
         open_text_label_ar=body.open_text_label_ar,
@@ -55,6 +56,7 @@ def update_question(
     question.question_type        = body.question_type.value
     question.display_order        = body.display_order
     question.is_required          = body.is_required
+    question.is_intro             = body.is_intro
     question.has_open_text_option = body.has_open_text_option
     question.open_text_label_en   = body.open_text_label_en
     question.open_text_label_ar   = body.open_text_label_ar

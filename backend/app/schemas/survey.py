@@ -129,6 +129,7 @@ class QuestionCreate(BaseModel):
     question_type: QuestionType
     display_order: int = 0
     is_required: bool = True
+    is_intro: bool = False
     has_open_text_option: bool = False
     open_text_label_en: str | None = None
     open_text_label_ar: str | None = None
@@ -145,6 +146,7 @@ class QuestionOut(BaseModel):
     display_order: int
     is_required: bool
     is_active: bool
+    is_intro: bool
     has_open_text_option: bool
     open_text_label_en: str | None
     open_text_label_ar: str | None

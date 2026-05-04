@@ -43,6 +43,7 @@ interface EditForm {
   text_ar:              string
   question_type:        QuestionType
   roles:                string[]
+  is_intro:             boolean
   has_open_text_option: boolean
   open_text_label_en:   string
   open_text_label_ar:   string
@@ -84,7 +85,7 @@ export function QuestionBuilder() {
   const qc = useQueryClient()
 
   const [editingId,      setEditingId]      = useState<number | null>(null)
-  const [editForm,       setEditForm]       = useState<EditForm>({ text_en: '', text_ar: '', question_type: 'open_text', roles: [], has_open_text_option: false, open_text_label_en: '', open_text_label_ar: '', newOptEn: '', newOptAr: '' })
+  const [editForm,       setEditForm]       = useState<EditForm>({ text_en: '', text_ar: '', question_type: 'open_text', roles: [], is_intro: false, has_open_text_option: false, open_text_label_en: '', open_text_label_ar: '', newOptEn: '', newOptAr: '' })
   const [editError,      setEditError]      = useState<string>('')
   const [savedId,        setSavedId]        = useState<number | null>(null)
   const [editingOptId,   setEditingOptId]   = useState<number | null>(null)
@@ -195,6 +196,7 @@ export function QuestionBuilder() {
       text_ar:              getTranslation(q.translations, 'ar')?.text ?? '',
       question_type:        q.question_type,
       roles:                q.visibility_rules.map((r) => r.role),
+      is_intro:             q.is_intro,
       has_open_text_option: q.has_open_text_option,
       open_text_label_en:   q.open_text_label_en ?? '',
       open_text_label_ar:   q.open_text_label_ar ?? '',
@@ -227,6 +229,7 @@ export function QuestionBuilder() {
         question_type:         editForm.question_type,
         display_order:         q.display_order,
         is_required:           q.is_required,
+        is_intro:              editForm.is_intro,
         has_open_text_option:  editForm.has_open_text_option,
         open_text_label_en:    editForm.open_text_label_en || null,
         open_text_label_ar:    editForm.open_text_label_ar || null,
@@ -290,6 +293,7 @@ export function QuestionBuilder() {
       question_type:        newQForm.type,
       display_order:        maxOrder + 1,
       is_required:          true,
+      is_intro:             false,
       has_open_text_option: newQForm.has_open_text_option,
       open_text_label_en:   newQForm.open_text_label_en || null,
       open_text_label_ar:   newQForm.open_text_label_ar || null,
@@ -404,6 +408,7 @@ export function QuestionBuilder() {
                       {q.visibility_rules.map((r) => (
                         <Badge key={r.id} variant="info">{r.role.toUpperCase()}</Badge>
                       ))}
+                      {q.is_intro && <Badge variant="default">Intro</Badge>}
                     </div>
                     <p className="text-sm text-tfa-gray-900 leading-relaxed">{textEn}</p>
                     {textAr && (
@@ -549,6 +554,25 @@ export function QuestionBuilder() {
                         </label>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Show on intro page toggle */}
+                  <div>
+                    <label className="flex items-start gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={editForm.is_intro}
+                        onChange={(e) => setEditForm((f) => ({ ...f, is_intro: e.target.checked }))}
+                        className="h-4 w-4 rounded border-tfa-gray-300 text-tfa-navy mt-0.5"
+                      />
+                      <div>
+                        <span className="text-sm font-semibold text-tfa-gray-700">Show on intro page</span>
+                        <p className="text-xs text-tfa-gray-400">
+                          This question appears on the start page before "Start Survey", alongside role/sector/org size.
+                          Its answer is saved with the submission.
+                        </p>
+                      </div>
+                    </label>
                   </div>
 
                   {/* Option editor — choice types only */}

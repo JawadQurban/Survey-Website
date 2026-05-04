@@ -10,7 +10,8 @@ import { useLanguageStore } from '@/store/languageStore'
 import { useSurveyStore } from '@/store/surveyStore'
 import { publicApi } from '@/lib/api'
 import { t } from '@/lib/i18n'
-import type { Survey, RespondentRole, SurveyListItem } from '@/types/survey'
+import type { Survey, RespondentRole, SurveyListItem, Question, AnswerInput } from '@/types/survey'
+import type { Language } from '@/types/survey'
 import type { AxiosError } from 'axios'
 
 const AUTOSAVE_INTERVAL_MS = 30_000
@@ -53,22 +54,28 @@ const ROLES = [
 // ─── Intro form (sector / org size / role) ────────────────────────────────────
 
 interface IntroFormProps {
-  onBegin: (sector: string, orgSize: string, role: string) => void
+  onBegin: (sector: string, orgSize: string, role: string, introAnswers: Record<number, AnswerInput>) => void
   loading: boolean
   externalError: string
   isRTL: boolean
+  language: string
   showRole:    boolean
   showSector:  boolean
   showOrgSize: boolean
+  introQuestions: Question[]
 }
 
-function IntroForm({ onBegin, loading, externalError, isRTL, showRole, showSector, showOrgSize }: IntroFormProps) {
+function IntroForm({ onBegin, loading, externalError, isRTL, language, showRole, showSector, showOrgSize, introQuestions }: IntroFormProps) {
   const [role,            setRole]            = useState('')
   const [sector,          setSector]          = useState('')
   const [otherSectorText, setOtherSectorText] = useState('')
   const [orgSize,         setOrgSize]         = useState('')
   const [otherOrgText,    setOtherOrgText]    = useState('')
+  const [introAnswers,    setIntroAnswers]    = useState<Record<number, AnswerInput>>({})
   const [error,           setError]           = useState('')
+
+  const setIntroAnswer = (ans: AnswerInput) =>
+    setIntroAnswers((prev) => ({ ...prev, [ans.question_id]: ans }))
 
   const handleSubmit = () => {
     if (showRole    && !role)    return setError(isRTL ? 'يرجى اختيار دورك'        : 'Please select your role')
@@ -78,9 +85,22 @@ function IntroForm({ onBegin, loading, externalError, isRTL, showRole, showSecto
     if (showOrgSize && !orgSize) return setError(isRTL ? 'يرجى اختيار حجم المنشأة' : 'Please select your organization size')
     if (showOrgSize && orgSize === 'other' && !otherOrgText.trim())
       return setError(isRTL ? 'يرجى تحديد حجم منشأتك'                              : 'Please specify your organization size')
+    // Validate required custom intro questions
+    for (const q of introQuestions) {
+      if (!q.is_required) continue
+      const ans = introAnswers[q.id]
+      const empty = !ans || (
+        !ans.open_text_value?.trim() &&
+        !ans.selected_option_keys?.length &&
+        ans.numeric_value == null
+      )
+      if (empty) {
+        const txt = q.translations.find((t) => t.language_code === language)?.text ?? q.translations[0]?.text ?? ''
+        return setError(`${isRTL ? 'يرجى الإجابة على' : 'Please answer:'} ${txt}`)
+      }
+    }
     setError('')
-    // Use 'other' as default for any hidden question
-    onBegin(showSector ? sector : 'other', showOrgSize ? orgSize : 'other', showRole ? role : 'other')
+    onBegin(showSector ? sector : 'other', showOrgSize ? orgSize : 'other', showRole ? role : 'other', introAnswers)
   }
 
   const displayError = error || externalError
@@ -216,6 +236,19 @@ function IntroForm({ onBegin, loading, externalError, isRTL, showRole, showSecto
       </div>
       )}
 
+      {/* Custom intro questions */}
+      {introQuestions.map((q) => (
+        <div key={q.id} className="px-6 py-5">
+          <QuestionRenderer
+            question={q}
+            questionNumber={undefined}
+            value={introAnswers[q.id]}
+            onChange={setIntroAnswer}
+            language={language as Language}
+          />
+        </div>
+      ))}
+
       {/* Error + Submit */}
       <div className="px-6 py-5 space-y-4">
         {displayError && <Alert variant="error">{displayError}</Alert>}
@@ -244,6 +277,15 @@ export function SurveyForm() {
   })
   const surveyMeta = ((surveysData?.data ?? []) as SurveyListItem[])
     .find((s) => s.slug === surveySlug)
+
+  // Fetch custom intro questions (no session required)
+  const { data: introData } = useQuery({
+    queryKey: ['intro-questions', surveySlug, language],
+    queryFn:  () => publicApi.getIntroQuestions(surveySlug!, language),
+    enabled:  !!surveySlug && !respondentRole,
+    staleTime: 60_000,
+  })
+  const introQuestions = (introData?.data ?? []) as Question[]
 
   // respondentRole is included in the key so a role change always triggers a fresh fetch,
   // preventing a stale 401-error cache from blocking the new session's request.
@@ -283,7 +325,7 @@ export function SurveyForm() {
 
   // Begin-survey mutation — called when the intro form is submitted
   const beginMutation = useMutation({
-    mutationFn: (params: { sector: string; orgSize: string; role: string }) =>
+    mutationFn: (params: { sector: string; orgSize: string; role: string; introAnswers: Record<number, AnswerInput> }) =>
       publicApi.beginSurvey(surveySlug!, {
         sector:    params.sector,
         org_size:  params.orgSize,
@@ -292,11 +334,13 @@ export function SurveyForm() {
       }),
     onSuccess: (_data, variables) => {
       setSession({
-        surveySlug:    surveySlug!,
+        surveySlug:     surveySlug!,
         respondentRole: variables.role as RespondentRole,
-        sector:        variables.sector,
-        orgSize:       variables.orgSize,
+        sector:         variables.sector,
+        orgSize:        variables.orgSize,
       })
+      // setSession clears answers — set custom intro answers afterwards
+      Object.values(variables.introAnswers).forEach((ans) => setAnswer(ans))
     },
   })
 
@@ -320,13 +364,16 @@ export function SurveyForm() {
     return (
       <div className="max-w-2xl mx-auto animate-fade-in" dir={isRTL ? 'rtl' : 'ltr'}>
         <IntroForm
-          onBegin={(sector, orgSize, role) => beginMutation.mutate({ sector, orgSize, role })}
+          onBegin={(sector, orgSize, role, introAnswers) =>
+            beginMutation.mutate({ sector, orgSize, role, introAnswers })}
           loading={beginMutation.isPending}
           externalError={beginError}
           isRTL={isRTL}
+          language={language}
           showRole={    surveyMeta?.show_role    !== false}
           showSector={  surveyMeta?.show_sector  !== false}
           showOrgSize={ surveyMeta?.show_org_size !== false}
+          introQuestions={introQuestions}
         />
       </div>
     )
