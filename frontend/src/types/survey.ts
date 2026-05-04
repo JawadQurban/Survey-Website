@@ -132,6 +132,8 @@ export interface SurveyListItem {
   id: number
   slug: string
   title: string
+  description: string | null
+  skip_intro: boolean
 }
 
 export interface SurveyBeginOut {

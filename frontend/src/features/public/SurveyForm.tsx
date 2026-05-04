@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
 import { Modal } from '@/components/ui/Modal'
@@ -10,7 +10,7 @@ import { useLanguageStore } from '@/store/languageStore'
 import { useSurveyStore } from '@/store/surveyStore'
 import { publicApi } from '@/lib/api'
 import { t } from '@/lib/i18n'
-import type { Survey, RespondentRole } from '@/types/survey'
+import type { Survey, RespondentRole, SurveyListItem } from '@/types/survey'
 import type { AxiosError } from 'axios'
 
 const AUTOSAVE_INTERVAL_MS = 30_000
@@ -226,6 +226,11 @@ export function SurveyForm() {
   const { answers, setAnswer, markSaved, isDirty, getAllAnswers, respondentRole, setSession, clearSession } = useSurveyStore()
   const autosaveTimer  = useRef<ReturnType<typeof setInterval> | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const qc = useQueryClient()
+
+  // Look up this survey's skip_intro flag from the cached survey list
+  const surveyMeta = (qc.getQueryData<{ data: SurveyListItem[] }>(['active-surveys'])?.data ?? [])
+    .find((s) => s.slug === surveySlug)
 
   // respondentRole is included in the key so a role change always triggers a fresh fetch,
   // preventing a stale 401-error cache from blocking the new session's request.
@@ -282,8 +287,18 @@ export function SurveyForm() {
     },
   })
 
+  // Auto-begin for surveys that skip the intro (no role/sector/size questions)
+  useEffect(() => {
+    if (!respondentRole && surveyMeta?.skip_intro && !beginMutation.isPending && !beginMutation.isSuccess) {
+      beginMutation.mutate({ sector: 'other', orgSize: 'other', role: 'other' })
+    }
+  }, [surveyMeta?.skip_intro, respondentRole])
+
   // ── Intro phase (no session yet) ──────────────────────────────────────────
   if (!respondentRole) {
+    // If skip_intro is set, show a spinner while auto-begin runs
+    if (surveyMeta?.skip_intro) return <PageSpinner />
+
     const beginError =
       (beginMutation.error as { response?: { data?: { detail?: string } } } | null)
         ?.response?.data?.detail

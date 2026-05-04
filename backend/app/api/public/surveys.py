@@ -23,10 +23,13 @@ def list_active_surveys(
             (t for t in survey.translations if t.language_code == language),
             next((t for t in survey.translations if t.language_code == "en"), None),
         )
+        settings = survey.settings or {}
         result.append({
-            "id": survey.id,
-            "slug": survey.slug,
-            "title": translation.title if translation else survey.slug,
+            "id":          survey.id,
+            "slug":        survey.slug,
+            "title":       translation.title if translation else survey.slug,
+            "description": translation.description if translation else None,
+            "skip_intro":  bool(settings.get("skip_intro", False)),
         })
     return result
 

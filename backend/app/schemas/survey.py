@@ -25,6 +25,7 @@ class SurveyCreate(BaseModel):
     is_fs_only: bool = False
     starts_at: datetime | None = None
     ends_at: datetime | None = None
+    settings: dict | None = None
     translations: list[SurveyTranslationIn] = Field(min_length=1)
 
 
@@ -33,6 +34,7 @@ class SurveyUpdate(BaseModel):
     is_fs_only: bool | None = None
     starts_at: datetime | None = None
     ends_at: datetime | None = None
+    settings: dict | None = None
     translations: list[SurveyTranslationIn] | None = None
 
 
@@ -44,6 +46,7 @@ class SurveyOut(BaseModel):
     starts_at: datetime | None
     ends_at: datetime | None
     created_at: datetime
+    settings: dict | None = None
     translations: list[SurveyTranslationOut] = []
 
     model_config = {"from_attributes": True}
