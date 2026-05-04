@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Badge, statusBadgeVariant } from '@/components/ui/Badge'
 import { PageSpinner } from '@/components/ui/Spinner'
 import { adminApi } from '@/lib/api'
 import { getTranslation } from '@/lib/i18n'
 import type { PaginatedResponse, SubmissionSummary } from '@/types/admin'
-import type { SubmissionOut, Survey, SurveyListItem } from '@/types/survey'
+import type { SubmissionOut, Survey } from '@/types/survey'
 import { Download, Eye, X } from 'lucide-react'
 
 const ROLE_LABELS: Record<string, string> = { ceo: 'CEO', chro: 'CHRO', ld: 'L&D' }
