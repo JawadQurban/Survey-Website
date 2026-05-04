@@ -17,9 +17,7 @@ export function LandingPage() {
 
   const surveys = (surveysData?.data as SurveyListItem[]) ?? []
 
-  // First active survey is the hero; the rest appear as secondary links
-  const survey        = surveys[0]
-  const otherSurveys  = surveys.slice(1)
+  const survey = surveys[0]
 
   return (
     <div className="animate-fade-in" dir={isRTL ? 'rtl' : 'ltr'}>
