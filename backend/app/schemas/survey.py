@@ -146,7 +146,7 @@ class QuestionOut(BaseModel):
     display_order: int
     is_required: bool
     is_active: bool
-    is_intro: bool
+    is_intro: bool = False
     has_open_text_option: bool
     open_text_label_en: str | None
     open_text_label_ar: str | None
