@@ -57,9 +57,12 @@ interface IntroFormProps {
   loading: boolean
   externalError: string
   isRTL: boolean
+  showRole:    boolean
+  showSector:  boolean
+  showOrgSize: boolean
 }
 
-function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
+function IntroForm({ onBegin, loading, externalError, isRTL, showRole, showSector, showOrgSize }: IntroFormProps) {
   const [role,            setRole]            = useState('')
   const [sector,          setSector]          = useState('')
   const [otherSectorText, setOtherSectorText] = useState('')
@@ -68,15 +71,16 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
   const [error,           setError]           = useState('')
 
   const handleSubmit = () => {
-    if (!role)    return setError(isRTL ? 'يرجى اختيار دورك'         : 'Please select your role')
-    if (!sector)  return setError(isRTL ? 'يرجى اختيار القطاع'       : 'Please select your sector')
-    if (sector === 'other' && !otherSectorText.trim())
-      return setError(isRTL ? 'يرجى تحديد قطاعك'                     : 'Please specify your sector')
-    if (!orgSize) return setError(isRTL ? 'يرجى اختيار حجم المنشأة'  : 'Please select your organization size')
-    if (orgSize === 'other' && !otherOrgText.trim())
-      return setError(isRTL ? 'يرجى تحديد حجم منشأتك'                : 'Please specify your organization size')
+    if (showRole    && !role)    return setError(isRTL ? 'يرجى اختيار دورك'        : 'Please select your role')
+    if (showSector  && !sector)  return setError(isRTL ? 'يرجى اختيار القطاع'      : 'Please select your sector')
+    if (showSector  && sector === 'other' && !otherSectorText.trim())
+      return setError(isRTL ? 'يرجى تحديد قطاعك'                                   : 'Please specify your sector')
+    if (showOrgSize && !orgSize) return setError(isRTL ? 'يرجى اختيار حجم المنشأة' : 'Please select your organization size')
+    if (showOrgSize && orgSize === 'other' && !otherOrgText.trim())
+      return setError(isRTL ? 'يرجى تحديد حجم منشأتك'                              : 'Please specify your organization size')
     setError('')
-    onBegin(sector, orgSize, role)
+    // Use 'other' as default for any hidden question
+    onBegin(showSector ? sector : 'other', showOrgSize ? orgSize : 'other', showRole ? role : 'other')
   }
 
   const displayError = error || externalError
@@ -84,7 +88,8 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
   return (
     <div className="bg-white border border-tfa-gray-200 rounded shadow-card divide-y divide-tfa-gray-100">
 
-      {/* Q1: Role — shown first per Excel section 0 order */}
+      {/* Q1: Role */}
+      {showRole && (
       <div className="px-6 py-5">
         <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
           {isRTL
@@ -118,8 +123,10 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
           ))}
         </div>
       </div>
+      )}
 
       {/* Q2: Sector */}
+      {showSector && (
       <div className="px-6 py-5">
         <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
           {isRTL ? 'في أي قطاع تعملون حالياً؟' : 'Which sector are you currently operating in?'}
@@ -161,8 +168,10 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
           </div>
         )}
       </div>
+      )}
 
       {/* Q3: Org Size */}
+      {showOrgSize && (
       <div className="px-6 py-5">
         <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
           {isRTL
@@ -205,6 +214,7 @@ function IntroForm({ onBegin, loading, externalError, isRTL }: IntroFormProps) {
           </div>
         )}
       </div>
+      )}
 
       {/* Error + Submit */}
       <div className="px-6 py-5 space-y-4">
@@ -314,6 +324,9 @@ export function SurveyForm() {
           loading={beginMutation.isPending}
           externalError={beginError}
           isRTL={isRTL}
+          showRole={    surveyMeta?.show_role    !== false}
+          showSector={  surveyMeta?.show_sector  !== false}
+          showOrgSize={ surveyMeta?.show_org_size !== false}
         />
       </div>
     )

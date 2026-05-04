@@ -26,6 +26,9 @@ interface SurveyForm {
   instructions_ar:  string
   is_active:        boolean
   skip_intro:       boolean
+  show_role:        boolean
+  show_sector:      boolean
+  show_org_size:    boolean
 }
 
 const EMPTY: SurveyForm = {
@@ -33,13 +36,19 @@ const EMPTY: SurveyForm = {
   desc_en: '', desc_ar: '',
   instructions_en: '', instructions_ar: '',
   is_active: true, skip_intro: false,
+  show_role: true, show_sector: true, show_org_size: true,
 }
 
 function toApiPayload(form: SurveyForm, includeSlug = true) {
   const payload: Record<string, unknown> = {
     is_active:  form.is_active,
     is_fs_only: false,
-    settings:   { skip_intro: form.skip_intro },
+    settings: {
+      skip_intro:    form.skip_intro,
+      show_role:     form.show_role,
+      show_sector:   form.show_sector,
+      show_org_size: form.show_org_size,
+    },
     translations: [
       {
         language_code: 'en',
@@ -131,13 +140,35 @@ function SurveyFormFields({ form, onChange, showSlug = false }: {
             onChange={(e) => onChange({ skip_intro: e.target.checked })}
             className="h-4 w-4 rounded border-tfa-gray-300 text-tfa-navy" />
           <div>
-            <span className="text-sm text-tfa-gray-700 font-medium">Skip intro questions</span>
+            <span className="text-sm text-tfa-gray-700 font-medium">Skip all intro questions</span>
             <p className="text-xs text-tfa-gray-400">
-              Go directly to survey questions without asking role / sector / org size.
-              All questions are shown (no role-based filtering).
+              Go directly to survey questions without any intro. All questions shown, no role filtering.
             </p>
           </div>
         </label>
+
+        {/* Per-question intro toggles — only relevant when skip_intro is off */}
+        {!form.skip_intro && (
+          <div className="pl-6 space-y-2 border-l-2 border-tfa-gray-100">
+            <p className="text-xs font-semibold text-tfa-gray-400 uppercase tracking-wide">Intro questions to show</p>
+            {([
+              { key: 'show_role',     label: 'Role question',              desc: 'CEO / CHRO / L&D — used for role-based question filtering' },
+              { key: 'show_sector',   label: 'Sector question',            desc: 'Which sector are you currently operating in?' },
+              { key: 'show_org_size', label: 'Organisation size question', desc: 'Number of employees in KSA' },
+            ] as { key: keyof SurveyForm; label: string; desc: string }[]).map(({ key, label, desc }) => (
+              <label key={key} className="flex items-start gap-2 cursor-pointer select-none">
+                <input type="checkbox"
+                  checked={form[key] as boolean}
+                  onChange={(e) => onChange({ [key]: e.target.checked })}
+                  className="h-4 w-4 rounded border-tfa-gray-300 text-tfa-navy mt-0.5" />
+                <div>
+                  <span className="text-sm text-tfa-gray-700 font-medium">{label}</span>
+                  <p className="text-xs text-tfa-gray-400">{desc}</p>
+                </div>
+              </label>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -197,8 +228,11 @@ function EditSurveyModal({ survey, onClose }: { survey: Survey; onClose: () => v
     desc_ar:         transAr?.description ?? '',
     instructions_en: transEn?.instructions ?? '',
     instructions_ar: transAr?.instructions ?? '',
-    is_active:       survey.is_active,
-    skip_intro:      Boolean(settings.skip_intro),
+    is_active:    survey.is_active,
+    skip_intro:   Boolean(settings.skip_intro),
+    show_role:    settings.show_role    !== false,
+    show_sector:  settings.show_sector  !== false,
+    show_org_size:settings.show_org_size !== false,
   })
   const [error, setError] = useState('')
   const qc = useQueryClient()

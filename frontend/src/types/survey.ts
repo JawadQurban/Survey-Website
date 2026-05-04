@@ -133,7 +133,10 @@ export interface SurveyListItem {
   slug: string
   title: string
   description: string | null
-  skip_intro: boolean
+  skip_intro:    boolean
+  show_role:     boolean
+  show_sector:   boolean
+  show_org_size: boolean
 }
 
 export interface SurveyBeginOut {

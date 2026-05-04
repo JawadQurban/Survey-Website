@@ -25,11 +25,14 @@ def list_active_surveys(
         )
         settings = survey.settings or {}
         result.append({
-            "id":          survey.id,
-            "slug":        survey.slug,
-            "title":       translation.title if translation else survey.slug,
-            "description": translation.description if translation else None,
-            "skip_intro":  bool(settings.get("skip_intro", False)),
+            "id":           survey.id,
+            "slug":         survey.slug,
+            "title":        translation.title if translation else survey.slug,
+            "description":  translation.description if translation else None,
+            "skip_intro":   bool(settings.get("skip_intro",   False)),
+            "show_role":    bool(settings.get("show_role",    True)),
+            "show_sector":  bool(settings.get("show_sector",  True)),
+            "show_org_size":bool(settings.get("show_org_size",True)),
         })
     return result
 
