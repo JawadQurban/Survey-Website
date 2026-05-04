@@ -347,7 +347,7 @@ export function SurveyForm() {
   // Auto-begin for surveys that skip the intro (no role/sector/size questions)
   useEffect(() => {
     if (!respondentRole && surveyMeta?.skip_intro && !beginMutation.isPending && !beginMutation.isSuccess) {
-      beginMutation.mutate({ sector: 'other', orgSize: 'other', role: 'other' })
+      beginMutation.mutate({ sector: 'other', orgSize: 'other', role: 'other', introAnswers: {} })
     }
   }, [surveyMeta?.skip_intro, respondentRole])
 
