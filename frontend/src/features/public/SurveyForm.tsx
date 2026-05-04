@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
 import { Modal } from '@/components/ui/Modal'
@@ -226,10 +226,13 @@ export function SurveyForm() {
   const { answers, setAnswer, markSaved, isDirty, getAllAnswers, respondentRole, setSession, clearSession } = useSurveyStore()
   const autosaveTimer  = useRef<ReturnType<typeof setInterval> | null>(null)
   const [showModal, setShowModal] = useState(false)
-  const qc = useQueryClient()
-
-  // Look up this survey's skip_intro flag from the cached survey list
-  const surveyMeta = (qc.getQueryData<{ data: SurveyListItem[] }>(['active-surveys'])?.data ?? [])
+  // Fetch survey list so skip_intro works even on direct /survey/:slug/start links
+  const { data: surveysData } = useQuery({
+    queryKey: ['active-surveys'],
+    queryFn:  () => publicApi.listActiveSurveys('en'),
+    staleTime: 60_000,
+  })
+  const surveyMeta = ((surveysData?.data ?? []) as SurveyListItem[])
     .find((s) => s.slug === surveySlug)
 
   // respondentRole is included in the key so a role change always triggers a fresh fetch,

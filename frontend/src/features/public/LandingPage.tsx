@@ -17,46 +17,7 @@ export function LandingPage() {
 
   const surveys = (surveysData?.data as SurveyListItem[]) ?? []
 
-  // ── Multiple surveys → list view ──────────────────────────────────────────
-  if (surveys.length > 1) {
-    return (
-      <div className="animate-fade-in max-w-2xl mx-auto py-8" dir={isRTL ? 'rtl' : 'ltr'}>
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-tfa-gray-800 mb-2">
-            {isRTL ? 'الاستطلاعات المتاحة' : 'Available Surveys'}
-          </h1>
-          <p className="text-tfa-gray-500 text-sm">
-            {isRTL ? 'اختر الاستطلاع الذي تريد المشاركة فيه' : 'Select the survey you would like to participate in'}
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          {surveys.map((survey) => (
-            <div
-              key={survey.id}
-              className="bg-white border border-tfa-gray-200 rounded-lg shadow-card px-6 py-5 flex items-center justify-between gap-4"
-            >
-              <div className="flex-1 min-w-0">
-                <h2 className="font-semibold text-tfa-gray-900">{survey.title}</h2>
-                {survey.description && (
-                  <p className="text-sm text-tfa-gray-500 mt-1 leading-relaxed">{survey.description}</p>
-                )}
-              </div>
-              <Button
-                size="sm"
-                onClick={() => navigate(`/survey/${survey.slug}/start`)}
-                className="shrink-0"
-              >
-                {isRTL ? 'ابدأ' : 'Begin'}
-              </Button>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  // ── Single survey (or none) → hero view ───────────────────────────────────
+  // Always use the first active survey for the hero
   const survey = surveys[0]
 
   return (

@@ -54,6 +54,7 @@ export interface SubmissionSummary {
   organization_id: number
   organization_name: string
   survey_id: number
+  survey_slug: string | null
   respondent_role: string
   respondent_email: string
   status: string

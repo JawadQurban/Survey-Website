@@ -37,16 +37,17 @@ def list_submissions(
                 s.organization.name_en if s.organization
                 else (s.org_name_input or "Anonymous")
             ),
-            "survey_id": s.survey_id,
-            "respondent_role": s.respondent_role,
+            "survey_id":   s.survey_id,
+            "survey_slug": s.survey.slug if s.survey else None,
+            "respondent_role":  s.respondent_role,
             "respondent_email": s.respondent_email,
-            "respondent_name": s.respondent_name,
-            "sector": s.sector,
+            "respondent_name":  s.respondent_name,
+            "sector":    s.sector,
             "regulator": s.regulator,
-            "org_size": s.org_size,
+            "org_size":  s.org_size,
             "status": str(s.status),
             "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
-            "created_at": s.created_at.isoformat(),
+            "created_at":   s.created_at.isoformat(),
         }
         for s in submissions
     ]

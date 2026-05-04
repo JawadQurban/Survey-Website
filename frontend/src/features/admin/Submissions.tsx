@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Badge, statusBadgeVariant } from '@/components/ui/Badge'
 import { PageSpinner } from '@/components/ui/Spinner'
 import { adminApi } from '@/lib/api'
 import { getTranslation } from '@/lib/i18n'
 import type { PaginatedResponse, SubmissionSummary } from '@/types/admin'
-import type { SubmissionOut, Survey } from '@/types/survey'
+import type { SubmissionOut, Survey, SurveyListItem } from '@/types/survey'
 import { Download, Eye, X } from 'lucide-react'
 
 const ROLE_LABELS: Record<string, string> = { ceo: 'CEO', chro: 'CHRO', ld: 'L&D' }
@@ -105,16 +105,25 @@ function SubmissionPanel({
 }
 
 export function Submissions() {
-  const [roleFilter, setRoleFilter] = useState('')
+  const [roleFilter,   setRoleFilter]   = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [surveyFilter, setSurveyFilter] = useState('')
   const [selected, setSelected] = useState<SubmissionSummary | null>(null)
 
+  // Load surveys list to populate the filter dropdown
+  const { data: surveysData } = useQuery({
+    queryKey: ['admin-surveys'],
+    queryFn:  () => adminApi.listSurveys(),
+  })
+  const surveys = (surveysData?.data as Survey[]) ?? []
+
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-submissions', roleFilter, statusFilter],
+    queryKey: ['admin-submissions', roleFilter, statusFilter, surveyFilter],
     queryFn: () =>
       adminApi.listSubmissions({
-        ...(roleFilter && { role: roleFilter }),
-        ...(statusFilter && { status: statusFilter }),
+        ...(roleFilter   && { role:      roleFilter }),
+        ...(statusFilter && { status:    statusFilter }),
+        ...(surveyFilter && { survey_id: Number(surveyFilter) }),
         limit: 100,
       }),
   })
@@ -157,6 +166,17 @@ export function Submissions() {
       <div className="flex gap-3 flex-wrap">
         <select
           className="rounded-lg border border-tfa-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
+          value={surveyFilter}
+          onChange={(e) => setSurveyFilter(e.target.value)}
+        >
+          <option value="">All Surveys</option>
+          {surveys.map((s) => {
+            const title = s.translations?.find((t) => t.language_code === 'en')?.title ?? s.slug
+            return <option key={s.id} value={s.id}>{title}</option>
+          })}
+        </select>
+        <select
+          className="rounded-lg border border-tfa-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy"
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
         >
@@ -180,7 +200,7 @@ export function Submissions() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-tfa-gray-200">
-              {['ID', 'Organization', 'Role', 'Email', 'Status', 'Submitted At', 'Actions'].map((h) => (
+              {['ID', 'Survey', 'Organization', 'Role', 'Email', 'Status', 'Submitted At', 'Actions'].map((h) => (
                 <th key={h} className="text-left py-3 px-3 text-xs font-semibold text-tfa-gray-500 uppercase tracking-wide">
                   {h}
                 </th>
@@ -191,6 +211,7 @@ export function Submissions() {
             {submissions.map((s) => (
               <tr key={s.id} className="border-b border-tfa-gray-100 hover:bg-tfa-gray-50">
                 <td className="py-3 px-3 text-tfa-gray-400 font-mono text-xs">#{s.id}</td>
+                <td className="py-3 px-3 text-xs font-mono text-tfa-gray-500">{s.survey_slug ?? `#${s.survey_id}`}</td>
                 <td className="py-3 px-3 font-medium text-tfa-gray-900">{s.organization_name}</td>
                 <td className="py-3 px-3">
                   <Badge variant="info">{ROLE_LABELS[s.respondent_role] ?? s.respondent_role}</Badge>
