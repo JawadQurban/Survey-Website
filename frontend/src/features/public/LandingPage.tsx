@@ -7,18 +7,19 @@ import type { SurveyListItem } from '@/types/survey'
 
 export function LandingPage() {
   const navigate = useNavigate()
-  const { isRTL } = useLanguageStore()
+  const { language, isRTL } = useLanguageStore()
 
   const { data: surveysData } = useQuery({
-    queryKey: ['active-surveys'],
-    queryFn: () => publicApi.listActiveSurveys('en'),   // fetch EN; SurveyForm re-fetches in user lang
+    queryKey: ['active-surveys', language],
+    queryFn: () => publicApi.listActiveSurveys(language),
     staleTime: 60_000,
   })
 
   const surveys = (surveysData?.data as SurveyListItem[]) ?? []
 
-  // Always use the first active survey for the hero
-  const survey = surveys[0]
+  // First active survey is the hero; the rest appear as secondary links
+  const survey        = surveys[0]
+  const otherSurveys  = surveys.slice(1)
 
   return (
     <div className="animate-fade-in" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -57,8 +58,28 @@ export function LandingPage() {
         </Button>
       </div>
 
+      {/* Other active surveys */}
+      {otherSurveys.length > 0 && (
+        <div className="mt-6 border-t border-tfa-gray-200 pt-6">
+          <p className="text-xs font-semibold text-tfa-gray-400 uppercase tracking-wide text-center mb-3">
+            {isRTL ? 'استطلاعات أخرى متاحة' : 'Other available surveys'}
+          </p>
+          <div className="flex flex-col gap-2">
+            {otherSurveys.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => navigate(`/survey/${s.slug}/start`)}
+                className="w-full text-center text-sm text-tfa-navy hover:underline py-1"
+              >
+                {s.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Info cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
         {[
           {
             icon: '5-10',
