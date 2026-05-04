@@ -58,26 +58,6 @@ export function LandingPage() {
         </Button>
       </div>
 
-      {/* Other active surveys */}
-      {otherSurveys.length > 0 && (
-        <div className="mt-6 border-t border-tfa-gray-200 pt-6">
-          <p className="text-xs font-semibold text-tfa-gray-400 uppercase tracking-wide text-center mb-3">
-            {isRTL ? 'استطلاعات أخرى متاحة' : 'Other available surveys'}
-          </p>
-          <div className="flex flex-col gap-2">
-            {otherSurveys.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => navigate(`/survey/${s.slug}/start`)}
-                className="w-full text-center text-sm text-tfa-navy hover:underline py-1"
-              >
-                {s.title}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Info cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
         {[
