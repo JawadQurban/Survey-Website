@@ -33,6 +33,7 @@ def list_active_surveys(
             "show_role":    bool(settings.get("show_role",    True)),
             "show_sector":  bool(settings.get("show_sector",  True)),
             "show_org_size":bool(settings.get("show_org_size",True)),
+            "intro_config": settings.get("intro_config", {}),
         })
     return result
 

@@ -8,7 +8,51 @@ import { PageSpinner } from '@/components/ui/Spinner'
 import { adminApi } from '@/lib/api'
 import type { Survey } from '@/types/survey'
 import { getTranslation } from '@/lib/i18n'
-import { ClipboardList, ExternalLink, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, ClipboardList, ExternalLink, Pencil, Plus, Trash2, X } from 'lucide-react'
+import type { IntroOption, IntroQuestionConfig, SurveyIntroConfig } from '@/types/survey'
+
+// ─── Default intro configs (mirrors SurveyForm.tsx constants) ────────────────
+const DEFAULT_ROLE_CONFIG: IntroQuestionConfig = {
+  text_en: 'What best describes your current role within the organization?',
+  text_ar: 'ما هو الوصف الأنسب لدورك الحالي داخل المنظمة؟',
+  options: [
+    { key: 'ceo',  badge: 'CEO',  label_en: 'CEO / Executive', label_ar: 'الرئيس التنفيذي / مستوى تنفيذي', desc_en: 'C-suite executive or board level',  desc_ar: 'قيادة تنفيذية أو مجلس إدارة' },
+    { key: 'chro', badge: 'CHRO', label_en: 'CHRO',            label_ar: 'رئيس قسم الموارد البشرية',        desc_en: 'Head of Human Capital / HR',        desc_ar: 'رئيس الموارد البشرية / رأس المال البشري' },
+    { key: 'ld',   badge: 'LD',   label_en: 'L&D Manager',     label_ar: 'التعلم والتطوير',                 desc_en: 'Head of Learning & Development',    desc_ar: 'رئيس التعلم والتطوير' },
+  ],
+}
+
+const DEFAULT_SECTOR_CONFIG: IntroQuestionConfig = {
+  text_en: 'Which sector are you currently operating in?',
+  text_ar: 'في أي قطاع تعملون حالياً؟',
+  options: [
+    { key: 'banking',         badge: 'B', label_en: 'Banking',        label_ar: 'الخدمات المصرفية' },
+    { key: 'insurance',       badge: 'I', label_en: 'Insurance',      label_ar: 'تأمين' },
+    { key: 'capital_markets', badge: 'C', label_en: 'Capital Markets', label_ar: 'أسواق رأس المال' },
+    { key: 'payments',        badge: 'P', label_en: 'Payments',       label_ar: 'المدفوعات' },
+    { key: 'financing',       badge: 'F', label_en: 'Financing',      label_ar: 'التمويل' },
+    { key: 'other',           badge: 'O', label_en: 'Other',          label_ar: 'أخرى (يرجى التحديد)' },
+  ],
+}
+
+const DEFAULT_ORG_SIZE_CONFIG: IntroQuestionConfig = {
+  text_en: 'What is the size of your organization in terms of number of employees in KSA?',
+  text_ar: 'ما حجم مؤسستك من حيث عدد الموظفين في المملكة العربية السعودية؟',
+  options: [
+    { key: 'lt_50',     label_en: 'Less than 50 employees',  label_ar: 'أقل من 50 موظف' },
+    { key: '50_249',    label_en: '50 – 249 employees',       label_ar: '50 – 249 موظف' },
+    { key: '250_999',   label_en: '250 – 999 employees',      label_ar: '250 – 999 موظف' },
+    { key: '1000_4999', label_en: '1,000 – 4,999 employees', label_ar: '1,000 – 4,999 موظف' },
+    { key: 'gte_5000',  label_en: '5,000 employees or more', label_ar: '5,000+ موظف' },
+    { key: 'other',     label_en: 'Other (please specify)',   label_ar: 'أخرى (يرجى التحديد)' },
+  ],
+}
+
+const EMPTY_INTRO_CONFIG: SurveyIntroConfig = {
+  role:     { ...DEFAULT_ROLE_CONFIG,     options: DEFAULT_ROLE_CONFIG.options?.map((o) => ({ ...o })) },
+  sector:   { ...DEFAULT_SECTOR_CONFIG,   options: DEFAULT_SECTOR_CONFIG.options?.map((o) => ({ ...o })) },
+  org_size: { ...DEFAULT_ORG_SIZE_CONFIG, options: DEFAULT_ORG_SIZE_CONFIG.options?.map((o) => ({ ...o })) },
+}
 
 // ─── Shared field styles ──────────────────────────────────────────────────────
 const INPUT = 'w-full rounded-lg border border-tfa-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy'
@@ -29,6 +73,7 @@ interface SurveyForm {
   show_role:        boolean
   show_sector:      boolean
   show_org_size:    boolean
+  intro_config:     SurveyIntroConfig
 }
 
 const EMPTY: SurveyForm = {
@@ -37,6 +82,7 @@ const EMPTY: SurveyForm = {
   instructions_en: '', instructions_ar: '',
   is_active: true, skip_intro: false,
   show_role: true, show_sector: true, show_org_size: true,
+  intro_config: JSON.parse(JSON.stringify(EMPTY_INTRO_CONFIG)),
 }
 
 function toApiPayload(form: SurveyForm, includeSlug = true) {
@@ -48,6 +94,7 @@ function toApiPayload(form: SurveyForm, includeSlug = true) {
       show_role:     form.show_role,
       show_sector:   form.show_sector,
       show_org_size: form.show_org_size,
+      intro_config:  form.intro_config,
     },
     translations: [
       {
@@ -66,6 +113,117 @@ function toApiPayload(form: SurveyForm, includeSlug = true) {
   }
   if (includeSlug) payload.slug = form.slug.trim()
   return payload
+}
+
+// ─── Intro question editor ────────────────────────────────────────────────────
+function IntroQuestionEditor({
+  qKey, config, onChange, lockOptions,
+}: {
+  qKey: keyof SurveyIntroConfig
+  config: IntroQuestionConfig
+  onChange: (c: IntroQuestionConfig) => void
+  lockOptions?: boolean   // role options are fixed (can edit labels, not add/remove)
+}) {
+  const [open, setOpen] = useState(false)
+
+  const updateOption = (idx: number, patch: Partial<IntroOption>) => {
+    const opts = [...(config.options ?? [])]
+    opts[idx] = { ...opts[idx], ...patch }
+    onChange({ ...config, options: opts })
+  }
+
+  const addOption = () => {
+    const opts = [...(config.options ?? []), { key: `opt_${Date.now()}`, badge: '', label_en: '', label_ar: '' }]
+    onChange({ ...config, options: opts })
+  }
+
+  const removeOption = (idx: number) => {
+    const opts = (config.options ?? []).filter((_, i) => i !== idx)
+    onChange({ ...config, options: opts })
+  }
+
+  const hasBadge = qKey === 'role' || qKey === 'sector'
+
+  return (
+    <div className="border border-tfa-gray-200 rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-3 py-2.5 bg-tfa-gray-50 hover:bg-tfa-gray-100 transition-colors text-left"
+      >
+        <span className="text-xs font-semibold text-tfa-gray-600 uppercase tracking-wide">
+          {qKey === 'role' ? 'Role question' : qKey === 'sector' ? 'Sector question' : 'Organisation size question'}
+        </span>
+        {open ? <ChevronUp className="h-4 w-4 text-tfa-gray-400" /> : <ChevronDown className="h-4 w-4 text-tfa-gray-400" />}
+      </button>
+
+      {open && (
+        <div className="px-4 py-4 space-y-4 bg-white">
+          {/* Question text */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL}>Question text (EN)</label>
+              <input className={INPUT} value={config.text_en}
+                onChange={(e) => onChange({ ...config, text_en: e.target.value })} />
+            </div>
+            <div>
+              <label className={LABEL}>Question text (AR)</label>
+              <input className={INPUT} dir="rtl" value={config.text_ar}
+                onChange={(e) => onChange({ ...config, text_ar: e.target.value })} />
+            </div>
+          </div>
+
+          {/* Options */}
+          <div>
+            <label className={LABEL}>Options</label>
+            <div className="space-y-2">
+              {(config.options ?? []).map((opt, idx) => (
+                <div key={opt.key + idx} className="flex items-start gap-2 bg-tfa-gray-50 p-2 rounded">
+                  {hasBadge && (
+                    <input
+                      className="w-14 rounded border border-tfa-gray-300 px-2 py-1.5 text-xs text-center font-mono focus:outline-none focus:ring-1 focus:ring-tfa-navy"
+                      placeholder="Badge"
+                      value={opt.badge ?? ''}
+                      disabled={lockOptions}
+                      onChange={(e) => updateOption(idx, { badge: e.target.value })}
+                    />
+                  )}
+                  <input className="flex-1 rounded border border-tfa-gray-300 px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-tfa-navy"
+                    placeholder="Label EN" value={opt.label_en}
+                    onChange={(e) => updateOption(idx, { label_en: e.target.value })} />
+                  <input className="flex-1 rounded border border-tfa-gray-300 px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-tfa-navy"
+                    dir="rtl" placeholder="Label AR" value={opt.label_ar}
+                    onChange={(e) => updateOption(idx, { label_ar: e.target.value })} />
+                  {qKey === 'role' && (
+                    <>
+                      <input className="flex-1 rounded border border-tfa-gray-300 px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-tfa-navy"
+                        placeholder="Description EN" value={opt.desc_en ?? ''}
+                        onChange={(e) => updateOption(idx, { desc_en: e.target.value })} />
+                      <input className="flex-1 rounded border border-tfa-gray-300 px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-tfa-navy"
+                        dir="rtl" placeholder="Description AR" value={opt.desc_ar ?? ''}
+                        onChange={(e) => updateOption(idx, { desc_ar: e.target.value })} />
+                    </>
+                  )}
+                  {!lockOptions && (
+                    <button type="button" onClick={() => removeOption(idx)}
+                      className="p-1 rounded hover:bg-red-50 text-tfa-gray-300 hover:text-red-500 shrink-0">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            {!lockOptions && (
+              <button type="button" onClick={addOption}
+                className="mt-2 text-xs text-tfa-navy hover:underline flex items-center gap-1">
+                <Plus className="h-3 w-3" /> Add option
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ─── Reusable form fields ─────────────────────────────────────────────────────
@@ -147,26 +305,71 @@ function SurveyFormFields({ form, onChange, showSlug = false }: {
           </div>
         </label>
 
-        {/* Per-question intro toggles — only relevant when skip_intro is off */}
+        {/* Per-question intro toggles + editors */}
         {!form.skip_intro && (
-          <div className="pl-6 space-y-2 border-l-2 border-tfa-gray-100">
+          <div className="pl-6 space-y-3 border-l-2 border-tfa-gray-100">
             <p className="text-xs font-semibold text-tfa-gray-400 uppercase tracking-wide">Intro questions to show</p>
-            {([
-              { key: 'show_role',     label: 'Role question',              desc: 'CEO / CHRO / L&D — used for role-based question filtering' },
-              { key: 'show_sector',   label: 'Sector question',            desc: 'Which sector are you currently operating in?' },
-              { key: 'show_org_size', label: 'Organisation size question', desc: 'Number of employees in KSA' },
-            ] as { key: keyof SurveyForm; label: string; desc: string }[]).map(({ key, label, desc }) => (
-              <label key={key} className="flex items-start gap-2 cursor-pointer select-none">
-                <input type="checkbox"
-                  checked={form[key] as boolean}
-                  onChange={(e) => onChange({ [key]: e.target.checked })}
+
+            {/* Role */}
+            <div>
+              <label className="flex items-start gap-2 cursor-pointer select-none mb-2">
+                <input type="checkbox" checked={form.show_role}
+                  onChange={(e) => onChange({ show_role: e.target.checked })}
                   className="h-4 w-4 rounded border-tfa-gray-300 text-tfa-navy mt-0.5" />
                 <div>
-                  <span className="text-sm text-tfa-gray-700 font-medium">{label}</span>
-                  <p className="text-xs text-tfa-gray-400">{desc}</p>
+                  <span className="text-sm text-tfa-gray-700 font-medium">Role question</span>
+                  <p className="text-xs text-tfa-gray-400">CEO / CHRO / L&D — used for role-based question filtering</p>
                 </div>
               </label>
-            ))}
+              {form.show_role && (
+                <IntroQuestionEditor
+                  qKey="role"
+                  config={form.intro_config.role ?? DEFAULT_ROLE_CONFIG}
+                  lockOptions
+                  onChange={(c) => onChange({ intro_config: { ...form.intro_config, role: c } })}
+                />
+              )}
+            </div>
+
+            {/* Sector */}
+            <div>
+              <label className="flex items-start gap-2 cursor-pointer select-none mb-2">
+                <input type="checkbox" checked={form.show_sector}
+                  onChange={(e) => onChange({ show_sector: e.target.checked })}
+                  className="h-4 w-4 rounded border-tfa-gray-300 text-tfa-navy mt-0.5" />
+                <div>
+                  <span className="text-sm text-tfa-gray-700 font-medium">Sector question</span>
+                  <p className="text-xs text-tfa-gray-400">Which sector are you currently operating in?</p>
+                </div>
+              </label>
+              {form.show_sector && (
+                <IntroQuestionEditor
+                  qKey="sector"
+                  config={form.intro_config.sector ?? DEFAULT_SECTOR_CONFIG}
+                  onChange={(c) => onChange({ intro_config: { ...form.intro_config, sector: c } })}
+                />
+              )}
+            </div>
+
+            {/* Org size */}
+            <div>
+              <label className="flex items-start gap-2 cursor-pointer select-none mb-2">
+                <input type="checkbox" checked={form.show_org_size}
+                  onChange={(e) => onChange({ show_org_size: e.target.checked })}
+                  className="h-4 w-4 rounded border-tfa-gray-300 text-tfa-navy mt-0.5" />
+                <div>
+                  <span className="text-sm text-tfa-gray-700 font-medium">Organisation size question</span>
+                  <p className="text-xs text-tfa-gray-400">Number of employees in KSA</p>
+                </div>
+              </label>
+              {form.show_org_size && (
+                <IntroQuestionEditor
+                  qKey="org_size"
+                  config={form.intro_config.org_size ?? DEFAULT_ORG_SIZE_CONFIG}
+                  onChange={(c) => onChange({ intro_config: { ...form.intro_config, org_size: c } })}
+                />
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -237,6 +440,11 @@ function EditSurveyModal({ survey, onClose }: { survey: Survey; onClose: () => v
     show_role:    settings.show_role    !== false,
     show_sector:  settings.show_sector  !== false,
     show_org_size:settings.show_org_size !== false,
+    intro_config: {
+      role:     settings.intro_config?.role     ?? JSON.parse(JSON.stringify(DEFAULT_ROLE_CONFIG)),
+      sector:   settings.intro_config?.sector   ?? JSON.parse(JSON.stringify(DEFAULT_SECTOR_CONFIG)),
+      org_size: settings.intro_config?.org_size ?? JSON.parse(JSON.stringify(DEFAULT_ORG_SIZE_CONFIG)),
+    },
   })
   const [error, setError] = useState('')
   const qc = useQueryClient()

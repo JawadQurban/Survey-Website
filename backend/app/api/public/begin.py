@@ -12,13 +12,6 @@ from app.security.jwt import create_access_token
 
 router = APIRouter(prefix="/surveys", tags=["public-survey-begin"])
 
-VALID_SECTORS = {
-    "banking", "insurance", "capital_markets",
-    "payments", "financing", "other",
-}
-
-VALID_ORG_SIZES = {"lt_50", "50_249", "250_999", "1000_4999", "gte_5000", "other"}
-
 VALID_ROLES = {"ceo", "chro", "ld", "other"}
 
 
@@ -30,16 +23,16 @@ class SurveyBeginRequest(BaseModel):
     @field_validator("sector")
     @classmethod
     def validate_sector(cls, v: str) -> str:
-        if v not in VALID_SECTORS:
-            raise ValueError(f"Invalid sector: {v}")
-        return v
+        if not v or not v.strip():
+            raise ValueError("Sector is required")
+        return v.strip()
 
     @field_validator("org_size")
     @classmethod
     def validate_org_size(cls, v: str) -> str:
-        if v not in VALID_ORG_SIZES:
-            raise ValueError(f"Invalid org size: {v}")
-        return v
+        if not v or not v.strip():
+            raise ValueError("Organisation size is required")
+        return v.strip()
 
     @field_validator("role")
     @classmethod
@@ -74,12 +67,12 @@ def begin_survey(
     token = create_access_token(
         subject=session_key,
         extra={
-            "type":         "survey_session",
-            "survey_slug":  survey_slug,
-            "role":         body.role,
-            "sector":       body.sector,
-            "org_size":     body.org_size,
-            "session_key":  session_key,
+            "type":        "survey_session",
+            "survey_slug": survey_slug,
+            "role":        body.role,
+            "sector":      body.sector,
+            "org_size":    body.org_size,
+            "session_key": session_key,
         },
     )
 

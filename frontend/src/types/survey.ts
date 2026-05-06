@@ -129,15 +129,37 @@ export interface AnswerOut {
   updated_at: string
 }
 
+export interface IntroOption {
+  key:      string
+  badge?:   string
+  label_en: string
+  label_ar: string
+  desc_en?: string
+  desc_ar?: string
+}
+
+export interface IntroQuestionConfig {
+  text_en:  string
+  text_ar:  string
+  options?: IntroOption[]
+}
+
+export interface SurveyIntroConfig {
+  role?:     IntroQuestionConfig
+  sector?:   IntroQuestionConfig
+  org_size?: IntroQuestionConfig
+}
+
 export interface SurveyListItem {
   id: number
   slug: string
   title: string
-  description: string | null
+  description:   string | null
   skip_intro:    boolean
   show_role:     boolean
   show_sector:   boolean
   show_org_size: boolean
+  intro_config:  SurveyIntroConfig
 }
 
 export interface SurveyBeginOut {

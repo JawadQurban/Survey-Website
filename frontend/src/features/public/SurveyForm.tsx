@@ -10,7 +10,7 @@ import { useLanguageStore } from '@/store/languageStore'
 import { useSurveyStore } from '@/store/surveyStore'
 import { publicApi } from '@/lib/api'
 import { t } from '@/lib/i18n'
-import type { Survey, RespondentRole, SurveyListItem, Question, AnswerInput } from '@/types/survey'
+import type { Survey, RespondentRole, SurveyListItem, Question, AnswerInput, SurveyIntroConfig } from '@/types/survey'
 import type { Language } from '@/types/survey'
 import type { AxiosError } from 'axios'
 
@@ -63,9 +63,37 @@ interface IntroFormProps {
   showSector:  boolean
   showOrgSize: boolean
   introQuestions: Question[]
+  introConfig: SurveyIntroConfig
 }
 
-function IntroForm({ onBegin, loading, externalError, isRTL, language, showRole, showSector, showOrgSize, introQuestions }: IntroFormProps) {
+function IntroForm({ onBegin, loading, externalError, isRTL, language, showRole, showSector, showOrgSize, introQuestions, introConfig }: IntroFormProps) {
+  // Resolve texts: use custom config if set, else fall back to hardcoded defaults
+  const roleQ   = introConfig.role
+  const sectorQ = introConfig.sector
+  const orgQ    = introConfig.org_size
+
+  const roleTxt   = isRTL ? (roleQ?.text_ar   || 'ما هو الوصف الأنسب لدورك الحالي داخل المنظمة؟')       : (roleQ?.text_en   || 'What best describes your current role within the organization?')
+  const sectorTxt = isRTL ? (sectorQ?.text_ar || 'في أي قطاع تعملون حالياً؟')                           : (sectorQ?.text_en || 'Which sector are you currently operating in?')
+  const orgTxt    = isRTL ? (orgQ?.text_ar    || 'ما حجم مؤسستك من حيث عدد الموظفين في المملكة العربية السعودية؟') : (orgQ?.text_en    || 'What is the size of your organization in terms of number of employees in KSA?')
+
+  // Resolve options from config (fall back to module-level constants if not set)
+  const resolvedRoles    = (roleQ?.options   ?? ROLES).map((o) => ({
+    key: o.key, badge: (o as any).badge ?? o.key.toUpperCase(),
+    en: (o as any).label_en ?? (o as any).en ?? o.key,
+    ar: (o as any).label_ar ?? (o as any).ar ?? o.key,
+    descEn: (o as any).desc_en ?? (o as any).descEn ?? '',
+    descAr: (o as any).desc_ar ?? (o as any).descAr ?? '',
+  }))
+  const resolvedSectors  = (sectorQ?.options ?? SECTORS).map((o) => ({
+    key: o.key, badge: (o as any).badge ?? o.key[0].toUpperCase(),
+    en: (o as any).label_en ?? (o as any).en ?? o.key,
+    ar: (o as any).label_ar ?? (o as any).ar ?? o.key,
+  }))
+  const resolvedOrgSizes = (orgQ?.options    ?? ORG_SIZES).map((o) => ({
+    key: o.key,
+    en: (o as any).label_en ?? (o as any).en ?? o.key,
+    ar: (o as any).label_ar ?? (o as any).ar ?? o.key,
+  }))
   const [role,            setRole]            = useState('')
   const [sector,          setSector]          = useState('')
   const [otherSectorText, setOtherSectorText] = useState('')
@@ -111,13 +139,9 @@ function IntroForm({ onBegin, loading, externalError, isRTL, language, showRole,
       {/* Q1: Role */}
       {showRole && (
       <div className="px-6 py-5">
-        <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
-          {isRTL
-            ? 'ما هو الوصف الأنسب لدورك الحالي داخل المنظمة؟'
-            : 'What best describes your current role within the organization?'}
-        </p>
+        <p className="text-sm font-semibold text-tfa-gray-800 mb-1">{roleTxt}</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
-          {ROLES.map((r) => (
+          {resolvedRoles.map((r) => (
             <button
               key={r.key}
               type="button"
@@ -148,11 +172,9 @@ function IntroForm({ onBegin, loading, externalError, isRTL, language, showRole,
       {/* Q2: Sector */}
       {showSector && (
       <div className="px-6 py-5">
-        <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
-          {isRTL ? 'في أي قطاع تعملون حالياً؟' : 'Which sector are you currently operating in?'}
-        </p>
+        <p className="text-sm font-semibold text-tfa-gray-800 mb-1">{sectorTxt}</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
-          {SECTORS.map((s) => (
+          {resolvedSectors.map((s) => (
             <button
               key={s.key}
               type="button"
@@ -193,13 +215,9 @@ function IntroForm({ onBegin, loading, externalError, isRTL, language, showRole,
       {/* Q3: Org Size */}
       {showOrgSize && (
       <div className="px-6 py-5">
-        <p className="text-sm font-semibold text-tfa-gray-800 mb-1">
-          {isRTL
-            ? 'ما حجم مؤسستك من حيث عدد الموظفين في المملكة العربية السعودية؟'
-            : 'What is the size of your organization in terms of number of employees in KSA?'}
-        </p>
+        <p className="text-sm font-semibold text-tfa-gray-800 mb-1">{orgTxt}</p>
         <div className="space-y-2 mt-3">
-          {ORG_SIZES.map((s) => (
+          {resolvedOrgSizes.map((s) => (
             <label
               key={s.key}
               className={`flex items-center justify-between w-full border rounded p-3 cursor-pointer transition-all ${
@@ -374,6 +392,7 @@ export function SurveyForm() {
           showSector={  surveyMeta?.show_sector  !== false}
           showOrgSize={ surveyMeta?.show_org_size !== false}
           introQuestions={introQuestions}
+          introConfig={surveyMeta?.intro_config ?? {}}
         />
       </div>
     )
