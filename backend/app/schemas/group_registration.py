@@ -85,8 +85,8 @@ class GroupRegistrationCreate(BaseModel):
         if v is None:
             return v
         cleaned = re.sub(r"\s+", "", v)
-        if not re.match(r"^(\+966|00966|05)\d{8}$", cleaned):
-            raise ValueError("Mobile must be a valid Saudi number (e.g. 05XXXXXXXX or +966XXXXXXXXX)")
+        if not re.match(r"^(\+966|00966|0)5\d{8}$", cleaned):
+            raise ValueError("Mobile must be a valid Saudi number (e.g. 05XXXXXXXX or +9665XXXXXXXX)")
         return cleaned
 
 
@@ -146,3 +146,36 @@ class TrainingCourseUpdate(BaseModel):
     duration_days:   int | None = None
     capacity:        int | None = Field(None, ge=1)
     is_active:       bool | None = None
+
+
+# ── Group Registration Config ─────────────────────────────────────────────────
+
+class GroupRegistrationConfigCreate(BaseModel):
+    slug:           str = Field(min_length=1, max_length=128)
+    title_en:       str = Field(min_length=1, max_length=255)
+    title_ar:       str | None = Field(None, max_length=255)
+    description_en: str | None = None
+    description_ar: str | None = None
+    is_active:      bool = True
+
+
+class GroupRegistrationConfigUpdate(BaseModel):
+    title_en:       str | None = Field(None, min_length=1, max_length=255)
+    title_ar:       str | None = Field(None, max_length=255)
+    description_en: str | None = None
+    description_ar: str | None = None
+    is_active:      bool | None = None
+
+
+class GroupRegistrationConfigOut(BaseModel):
+    id:             int
+    slug:           str
+    title_en:       str
+    title_ar:       str | None
+    description_en: str | None
+    description_ar: str | None
+    is_active:      bool
+    created_at:     datetime
+    updated_at:     datetime
+
+    model_config = {"from_attributes": True}

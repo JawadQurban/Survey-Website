@@ -461,9 +461,20 @@ export function GroupRegistrationForm() {
 
         {/* Submit button */}
         {submitMutation.isError && (
-          <p className="text-sm text-red-500">
-            {isRTL ? 'حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى.' : 'An error occurred. Please try again.'}
-          </p>
+          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+            <p className="text-sm text-red-700 font-medium">
+              {isRTL ? 'حدث خطأ أثناء الإرسال:' : 'Submission failed:'}
+            </p>
+            <p className="text-sm text-red-600 mt-1">
+              {(() => {
+                const detail = (submitMutation.error as any)?.response?.data?.detail
+                if (!detail) return isRTL ? 'يرجى المحاولة مرة أخرى.' : 'Please try again.'
+                if (typeof detail === 'string') return detail
+                if (Array.isArray(detail)) return detail.map((d: any) => d.msg ?? JSON.stringify(d)).join(' | ')
+                return JSON.stringify(detail)
+              })()}
+            </p>
+          </div>
         )}
         <div className="flex justify-end">
           <Button size="lg" onClick={handleSubmit} loading={submitMutation.isPending}

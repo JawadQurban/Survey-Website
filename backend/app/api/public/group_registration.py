@@ -3,9 +3,19 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.repositories.group_registration_repository import GroupRegistrationRepository
-from app.schemas.group_registration import GroupRegistrationCreate, GroupRegistrationOut
+from app.schemas.group_registration import (
+    GroupRegistrationConfigOut,
+    GroupRegistrationCreate,
+    GroupRegistrationOut,
+)
 
 router = APIRouter(prefix="/group-registration", tags=["public-group-registration"])
+
+
+@router.get("/config/{slug}", response_model=GroupRegistrationConfigOut | None)
+def get_form_config(slug: str, db: Session = Depends(get_db)):
+    """Returns the config for a form slug, or null if not configured."""
+    return GroupRegistrationRepository(db).get_config_by_slug(slug)
 
 
 @router.get("/catalog")

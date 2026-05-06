@@ -14,38 +14,50 @@ import {
   BookOpen,
   Users,
   UserCog,
+  Link2,
 } from 'lucide-react'
 
-const coreNavItems = [
-  { to: '/admin/dashboard',   label: 'admin.nav.dashboard',   icon: LayoutDashboard,  permission: null },
-  { to: '/admin/surveys',     label: 'admin.nav.surveys',     icon: ClipboardList,    permission: null },
-  { to: '/admin/submissions', label: 'admin.nav.submissions', icon: FileText,         permission: null },
-  { to: '/admin/cms',         label: 'admin.nav.cms',         icon: Layers,           permission: null },
-  { to: '/admin/settings',    label: 'admin.nav.settings',    icon: Settings,         permission: null },
-]
+function NavItem({ to, icon: Icon, label }: { to: string; icon: React.ElementType; label: string }) {
+  return (
+    <NavLink to={to}
+      className={({ isActive }) =>
+        `flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors ${
+          isActive ? 'bg-white/15 text-white font-medium' : 'text-white/65 hover:bg-white/8 hover:text-white/90'
+        }`
+      }
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      {label}
+    </NavLink>
+  )
+}
 
-const groupRegNavItems = [
-  { to: '/admin/group-registration', label: 'admin.nav.group_registration', icon: Users,     permission: 'surveys.group_registration.manage' },
-  { to: '/admin/training-courses',   label: 'admin.nav.training_courses',   icon: BookOpen,  permission: 'surveys.group_registration.manage' },
-]
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <>
+      <div className="border-t border-white/10 my-2" />
+      <p className="px-3 py-1 text-xs text-white/30 uppercase tracking-widest">{label}</p>
+    </>
+  )
+}
 
 export function AdminLayout() {
-  const { admin, setAdmin, can } = useAuthStore()
+  const { admin, setAdmin, can, canStandard } = useAuthStore()
   const { language } = useLanguageStore()
   const navigate = useNavigate()
   const qc = useQueryClient()
 
   const handleLogout = async () => {
-    try {
-      await adminApi.logout()
-    } catch {
-      // Even if the API call fails, clear the local session
-    } finally {
+    try { await adminApi.logout() } catch { /* ignore */ }
+    finally {
       setAdmin(null)
-      qc.clear()           // wipe all cached queries so getMe doesn't restore the session
+      qc.clear()
       navigate('/admin/login', { replace: true })
     }
   }
+
+  const showStandard  = canStandard()
+  const showGroupReg  = admin?.is_superadmin || can('surveys.group_registration.manage')
 
   return (
     <div className="flex min-h-screen bg-tfa-gray-50">
@@ -57,63 +69,41 @@ export function AdminLayout() {
         </div>
 
         <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
-          {coreNavItems.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to}
-              className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors ${
-                  isActive ? 'bg-white/15 text-white font-medium' : 'text-white/65 hover:bg-white/8 hover:text-white/90'
-                }`
-              }
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {t(label, language)}
-            </NavLink>
-          ))}
+          {/* Dashboard — always visible */}
+          <NavItem to="/admin/dashboard" icon={LayoutDashboard} label={t('admin.nav.dashboard', language)} />
+
+          {/* Standard survey section */}
+          {showStandard && (
+            <>
+              <NavItem to="/admin/surveys"     icon={ClipboardList} label={t('admin.nav.surveys', language)} />
+              <NavItem to="/admin/submissions" icon={FileText}      label={t('admin.nav.submissions', language)} />
+              <NavItem to="/admin/cms"         icon={Layers}        label={t('admin.nav.cms', language)} />
+              <NavItem to="/admin/settings"    icon={Settings}      label={t('admin.nav.settings', language)} />
+            </>
+          )}
 
           {/* Admin Users — superadmin only */}
           {admin?.is_superadmin && (
             <>
-              <div className="border-t border-white/10 my-2" />
-              <NavLink to="/admin/users"
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors ${
-                    isActive ? 'bg-white/15 text-white font-medium' : 'text-white/65 hover:bg-white/8 hover:text-white/90'
-                  }`
-                }
-              >
-                <UserCog className="h-4 w-4 shrink-0" />
-                Admin Users
-              </NavLink>
+              <SectionDivider label="System" />
+              <NavItem to="/admin/users" icon={UserCog} label="Admin Users" />
             </>
           )}
 
-          {/* Group Registration section — shown only if user has the permission */}
-          {groupRegNavItems.some(({ permission }) => !permission || can(permission)) && (
+          {/* Group Registration section */}
+          {showGroupReg && (
             <>
-              <div className="border-t border-white/10 my-2" />
-              <p className="px-3 py-1 text-xs text-white/30 uppercase tracking-widest">Group Registration</p>
-              {groupRegNavItems
-                .filter(({ permission }) => !permission || can(permission))
-                .map(({ to, label, icon: Icon }) => (
-                  <NavLink key={to} to={to}
-                    className={({ isActive }) =>
-                      `flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors ${
-                        isActive ? 'bg-white/15 text-white font-medium' : 'text-white/65 hover:bg-white/8 hover:text-white/90'
-                      }`
-                    }
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    {t(label, language)}
-                  </NavLink>
-                ))}
+              <SectionDivider label="Group Registration" />
+              <NavItem to="/admin/group-registration-forms" icon={Link2}     label="Registration Forms" />
+              <NavItem to="/admin/group-registration"       icon={Users}     label={t('admin.nav.group_registration', language)} />
+              <NavItem to="/admin/training-courses"         icon={BookOpen}  label={t('admin.nav.training_courses', language)} />
             </>
           )}
         </nav>
 
         <div className="px-2 py-3 border-t border-white/10">
           <p className="px-3 py-1 text-xs text-white/40 truncate mb-1">{admin?.email}</p>
-          <button
-            onClick={handleLogout}
+          <button onClick={handleLogout}
             className="flex items-center gap-2.5 px-3 py-2 w-full rounded text-sm text-white/60 hover:bg-white/8 hover:text-white/90 transition-colors"
           >
             <LogOut className="h-4 w-4" />

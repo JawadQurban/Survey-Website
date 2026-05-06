@@ -60,6 +60,8 @@ export const publicApi = {
     api.get('/public/submissions/my', { params: { survey_slug: surveySlug } }),
 
   // Group Registration (public — no auth)
+  getGroupRegConfig: (slug: string) =>
+    api.get(`/public/group-registration/config/${slug}`),
   getGroupRegCatalog: () =>
     api.get('/public/group-registration/catalog'),
   submitGroupRegistration: (data: object) =>
@@ -137,6 +139,16 @@ export const adminApi = {
     api.post(`/admin/users/${userId}/roles/${roleId}`, {}),
   removeRole: (userId: number, roleId: number) =>
     api.delete(`/admin/users/${userId}/roles/${roleId}`),
+
+  // Group Registration Form Configs (admin)
+  listGroupRegConfigs: () =>
+    api.get('/admin/group-registration/configs'),
+  createGroupRegConfig: (data: object) =>
+    api.post('/admin/group-registration/configs', data),
+  updateGroupRegConfig: (id: number, data: object) =>
+    api.put(`/admin/group-registration/configs/${id}`, data),
+  deleteGroupRegConfig: (id: number) =>
+    api.delete(`/admin/group-registration/configs/${id}`),
 
   // Group Registration Admin
   listGroupRegistrations: (params?: object) =>

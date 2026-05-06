@@ -7,6 +7,9 @@ from app.models.admin import AdminUser
 from app.repositories.admin_repository import AdminRepository
 from app.repositories.group_registration_repository import GroupRegistrationRepository
 from app.schemas.group_registration import (
+    GroupRegistrationConfigCreate,
+    GroupRegistrationConfigOut,
+    GroupRegistrationConfigUpdate,
     GroupRegistrationOut,
     TrainingCourseCreate,
     TrainingCourseOut,
@@ -146,6 +149,65 @@ def export_xlsx(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": "attachment; filename=group_registrations.xlsx"},
     )
+
+
+# ── Form configs ─────────────────────────────────────────────────────────────
+
+@router.get("/configs", response_model=list[GroupRegistrationConfigOut])
+def list_configs(
+    db: Session  = Depends(get_db),
+    _:  AdminUser = Depends(require_permission(PERM)),
+):
+    return GroupRegistrationRepository(db).list_configs()
+
+
+@router.post("/configs", response_model=GroupRegistrationConfigOut, status_code=status.HTTP_201_CREATED)
+def create_config(
+    body:  GroupRegistrationConfigCreate,
+    db:    Session  = Depends(get_db),
+    admin: AdminUser = Depends(require_permission(PERM)),
+):
+    repo = GroupRegistrationRepository(db)
+    if repo.get_config_by_slug(body.slug):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Slug already exists")
+    cfg = repo.create_config(body.model_dump())
+    AdminRepository(db).log_action(admin.id, "config_created", "group_reg_config", body.slug)
+    db.commit()
+    db.refresh(cfg)
+    return cfg
+
+
+@router.put("/configs/{config_id}", response_model=GroupRegistrationConfigOut)
+def update_config(
+    config_id: int,
+    body:      GroupRegistrationConfigUpdate,
+    db:        Session  = Depends(get_db),
+    admin:     AdminUser = Depends(require_permission(PERM)),
+):
+    repo = GroupRegistrationRepository(db)
+    cfg  = repo.get_config(config_id)
+    if not cfg:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Config not found")
+    repo.update_config(cfg, body.model_dump(exclude_none=True))
+    AdminRepository(db).log_action(admin.id, "config_updated", "group_reg_config", str(config_id))
+    db.commit()
+    db.refresh(cfg)
+    return cfg
+
+
+@router.delete("/configs/{config_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_config(
+    config_id: int,
+    db:        Session  = Depends(get_db),
+    admin:     AdminUser = Depends(require_permission(PERM)),
+):
+    repo = GroupRegistrationRepository(db)
+    cfg  = repo.get_config(config_id)
+    if not cfg:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Config not found")
+    db.delete(cfg)
+    AdminRepository(db).log_action(admin.id, "config_deleted", "group_reg_config", str(config_id))
+    db.commit()
 
 
 # ── Course catalog management ─────────────────────────────────────────────────

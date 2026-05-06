@@ -22,6 +22,20 @@ class TrainingCourse(Base):
     created_at:      Mapped[datetime]  = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class GroupRegistrationConfig(Base):
+    __tablename__ = "group_registration_configs"
+
+    id:             Mapped[int]        = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    slug:           Mapped[str]        = mapped_column(String(128), nullable=False, unique=True)
+    title_en:       Mapped[str]        = mapped_column(String(255), nullable=False)
+    title_ar:       Mapped[str | None] = mapped_column(String(255))
+    description_en: Mapped[str | None] = mapped_column(Text)
+    description_ar: Mapped[str | None] = mapped_column(Text)
+    is_active:      Mapped[bool]       = mapped_column(Boolean, default=True)
+    created_at:     Mapped[datetime]   = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at:     Mapped[datetime]   = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+
+
 class GroupRegistration(Base):
     __tablename__ = "group_registrations"
 

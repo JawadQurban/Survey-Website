@@ -15,6 +15,19 @@ export function hasPermission(user: AdminUser | null, permission: string): boole
   return user.permissions.includes(permission)
 }
 
+/** Standard survey access:
+ *  - Superadmin always yes
+ *  - Explicitly granted surveys.standard.manage → yes
+ *  - Has ONLY group_registration permission → no (they should only see group reg)
+ *  - No special permissions → yes (default admin access)
+ */
+export function canAccessStandardSurveys(user: AdminUser | null): boolean {
+  if (!user) return false
+  if (user.is_superadmin || user.permissions.includes('*')) return true
+  if (hasPermission(user, 'surveys.standard.manage')) return true
+  return !hasPermission(user, 'surveys.group_registration.manage')
+}
+
 export interface Organization {
   id: number
   name_en: string

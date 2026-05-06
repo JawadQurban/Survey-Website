@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 import random
 import string
 
-from app.models.group_registration import GroupRegistration, TrainingCourse
+from app.models.group_registration import GroupRegistration, GroupRegistrationConfig, TrainingCourse
 
 
 def _utcnow() -> datetime:
@@ -84,6 +84,31 @@ class GroupRegistrationRepository:
         for k, v in data.items():
             setattr(course, k, v)
         return course
+
+    # ── Form configs ──────────────────────────────────────────────────────────
+
+    def list_configs(self) -> list[GroupRegistrationConfig]:
+        return list(self._db.scalars(
+            select(GroupRegistrationConfig).order_by(GroupRegistrationConfig.created_at.desc())
+        ))
+
+    def get_config(self, config_id: int) -> GroupRegistrationConfig | None:
+        return self._db.get(GroupRegistrationConfig, config_id)
+
+    def get_config_by_slug(self, slug: str) -> GroupRegistrationConfig | None:
+        return self._db.scalar(
+            select(GroupRegistrationConfig).where(GroupRegistrationConfig.slug == slug)
+        )
+
+    def create_config(self, data: dict) -> GroupRegistrationConfig:
+        cfg = GroupRegistrationConfig(**data)
+        self._db.add(cfg)
+        return cfg
+
+    def update_config(self, cfg: GroupRegistrationConfig, data: dict) -> GroupRegistrationConfig:
+        for k, v in data.items():
+            setattr(cfg, k, v)
+        return cfg
 
     def build_catalog(self) -> dict:
         """Return nested catalog: {sector: {functional_area: [course, ...]}}"""
