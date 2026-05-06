@@ -13,6 +13,7 @@ import {
   LogOut,
   BookOpen,
   Users,
+  UserCog,
 } from 'lucide-react'
 
 const coreNavItems = [
@@ -68,6 +69,23 @@ export function AdminLayout() {
               {t(label, language)}
             </NavLink>
           ))}
+
+          {/* Admin Users — superadmin only */}
+          {admin?.is_superadmin && (
+            <>
+              <div className="border-t border-white/10 my-2" />
+              <NavLink to="/admin/users"
+                className={({ isActive }) =>
+                  `flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors ${
+                    isActive ? 'bg-white/15 text-white font-medium' : 'text-white/65 hover:bg-white/8 hover:text-white/90'
+                  }`
+                }
+              >
+                <UserCog className="h-4 w-4 shrink-0" />
+                Admin Users
+              </NavLink>
+            </>
+          )}
 
           {/* Group Registration section — shown only if user has the permission */}
           {groupRegNavItems.some(({ permission }) => !permission || can(permission)) && (

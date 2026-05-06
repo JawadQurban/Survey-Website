@@ -21,6 +21,7 @@ from app.api.admin import (
     submissions as admin_submissions, dashboard, cms, options as admin_options,
 )
 from app.api.admin import group_registration as admin_group_reg
+from app.api.admin import users as admin_users
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -94,6 +95,7 @@ def create_app() -> FastAPI:
     app.include_router(cms.router,               prefix=admin_prefix)
     app.include_router(admin_options.router,     prefix=admin_prefix)
     app.include_router(admin_group_reg.router,   prefix=admin_prefix)
+    app.include_router(admin_users.router,       prefix=admin_prefix)
 
     @app.get("/health")
     def health():

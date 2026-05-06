@@ -122,6 +122,22 @@ export const adminApi = {
   exportXlsx: (params?: object) =>
     api.get('/admin/submissions/export/xlsx', { params, responseType: 'blob' }),
 
+  // Admin User Management (superadmin only)
+  listAdminUsers: () =>
+    api.get('/admin/users'),
+  createAdminUser: (data: object) =>
+    api.post('/admin/users', data),
+  updateAdminUser: (id: number, data: object) =>
+    api.put(`/admin/users/${id}`, data),
+  resetAdminPassword: (id: number, newPassword: string) =>
+    api.post(`/admin/users/${id}/reset-password`, { new_password: newPassword }),
+  listRoles: () =>
+    api.get('/admin/users/roles'),
+  assignRole: (userId: number, roleId: number) =>
+    api.post(`/admin/users/${userId}/roles/${roleId}`, {}),
+  removeRole: (userId: number, roleId: number) =>
+    api.delete(`/admin/users/${userId}/roles/${roleId}`),
+
   // Group Registration Admin
   listGroupRegistrations: (params?: object) =>
     api.get('/admin/group-registration', { params }),
