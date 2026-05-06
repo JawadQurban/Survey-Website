@@ -291,7 +291,7 @@ export function SurveyForm() {
   const { data: surveysData } = useQuery({
     queryKey: ['active-surveys'],
     queryFn:  () => publicApi.listActiveSurveys('en'),
-    staleTime: 60_000,
+    staleTime: 0,
   })
   const surveyMeta = ((surveysData?.data ?? []) as SurveyListItem[])
     .find((s) => s.slug === surveySlug)
