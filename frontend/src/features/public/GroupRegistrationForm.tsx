@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { useLanguageStore } from '@/store/languageStore'
 import { publicApi } from '@/lib/api'
 import { t } from '@/lib/i18n'
-import type { CourseCatalog, GroupRegistrationFormData, NominationRow } from '@/types/groupRegistration'
-import { DELIVERY_MODES, SECTOR_LABELS } from '@/types/groupRegistration'
+import type { CourseCatalog, FormConfig, GroupRegistrationFormData, NominationRow } from '@/types/groupRegistration'
+import { DEFAULT_DELIVERY_MODES, SECTOR_LABELS } from '@/types/groupRegistration'
+// FormConfig used for settings typing via cfgData
 import { Plus, Trash2, AlertCircle } from 'lucide-react'
 
 // ── Style constants ────────────────────────────────────────────────────────────
@@ -73,11 +74,28 @@ function validate(form: GroupRegistrationFormData): Record<string, string> {
 
 // ── Component ──────────────────────────────────────────────────────────────────
 export function GroupRegistrationForm() {
-  const navigate = useNavigate()
+  const { slug }  = useParams<{ slug: string }>()
+  const navigate  = useNavigate()
   const { language, isRTL } = useLanguageStore()
-  const [form, setForm] = useState<GroupRegistrationFormData>(INITIAL)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [form, setForm]       = useState<GroupRegistrationFormData>(INITIAL)
+  const [errors, setErrors]   = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
+
+  // Load form config to get customised text, delivery modes, PDPL text
+  const { data: cfgData } = useQuery({
+    queryKey: ['gr-config', slug],
+    queryFn:  () => publicApi.getGroupRegConfig(slug!),
+    enabled:  !!slug,
+    staleTime: 5 * 60_000,
+  })
+  const cfgSettings = (cfgData?.data as FormConfig | null)?.settings
+  const deliveryModes = cfgSettings?.delivery_modes?.length ? cfgSettings.delivery_modes : DEFAULT_DELIVERY_MODES
+  const pdplText      = isRTL
+    ? (cfgSettings?.pdpl_text_ar || 'أقر بأن جميع المعلومات المقدمة دقيقة وكاملة. كما أفوّض الأكاديمية المالية باستخدام هذه البيانات وتحليلها وتخزينها بأمان وفقاً لنظام حماية البيانات الشخصية (PDPL) في المملكة العربية السعودية.')
+    : (cfgSettings?.pdpl_text_en || 'I hereby confirm that all information provided in this form is accurate and complete. I also authorize the Financial Academy to use, analyze, and securely store this data in accordance with the Personal Data Protection Law (PDPL) of the Kingdom of Saudi Arabia.')
+  const submitText = isRTL
+    ? (cfgSettings?.submit_text_ar || 'إرسال – الموافقة الرقمية')
+    : (cfgSettings?.submit_text_en || 'Submit – Digital Approval')
 
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
     queryKey: ['gr-catalog'],
@@ -374,7 +392,7 @@ export function GroupRegistrationForm() {
                     <select className={SELECT} value={row.delivery_mode}
                       onChange={(e) => updateRow(row.id, { delivery_mode: e.target.value })}>
                       <option value="">—</option>
-                      {DELIVERY_MODES.map((m) => <option key={m} value={m}>{m}</option>)}
+                      {deliveryModes.map((m) => <option key={m} value={m}>{m}</option>)}
                     </select>
                     {fe(`row_${idx}_mode`) && <p className={ERR}>{fe(`row_${idx}_mode`)}</p>}
                   </div>
@@ -452,7 +470,7 @@ export function GroupRegistrationForm() {
                 onChange={(e) => patch({ pdpl_authorized: e.target.checked })}
                 className="h-4 w-4 rounded border-tfa-gray-300 text-tfa-navy mt-0.5 shrink-0" />
               <span className="text-sm text-tfa-gray-600 leading-relaxed">
-                {t('gr.pdpl', language)}
+                {pdplText}
               </span>
             </label>
             {fe('pdpl_authorized') && <p className={ERR}>{fe('pdpl_authorized')}</p>}
@@ -479,7 +497,7 @@ export function GroupRegistrationForm() {
         <div className="flex justify-end">
           <Button size="lg" onClick={handleSubmit} loading={submitMutation.isPending}
             disabled={submitMutation.isPending}>
-            {submitMutation.isPending ? t('gr.submitting', language) : t('gr.submit', language)}
+            {submitMutation.isPending ? t('gr.submitting', language) : submitText}
           </Button>
         </div>
       </div>

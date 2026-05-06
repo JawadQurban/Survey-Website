@@ -157,6 +157,7 @@ class GroupRegistrationConfigCreate(BaseModel):
     description_en: str | None = None
     description_ar: str | None = None
     is_active:      bool = True
+    settings:       dict | None = None
 
 
 class GroupRegistrationConfigUpdate(BaseModel):
@@ -165,6 +166,7 @@ class GroupRegistrationConfigUpdate(BaseModel):
     description_en: str | None = None
     description_ar: str | None = None
     is_active:      bool | None = None
+    settings:       dict | None = None
 
 
 class GroupRegistrationConfigOut(BaseModel):
@@ -175,6 +177,7 @@ class GroupRegistrationConfigOut(BaseModel):
     description_en: str | None
     description_ar: str | None
     is_active:      bool
+    settings:       dict | None
     created_at:     datetime
     updated_at:     datetime
 

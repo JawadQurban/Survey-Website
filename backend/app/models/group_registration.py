@@ -31,9 +31,10 @@ class GroupRegistrationConfig(Base):
     title_ar:       Mapped[str | None] = mapped_column(String(255))
     description_en: Mapped[str | None] = mapped_column(Text)
     description_ar: Mapped[str | None] = mapped_column(Text)
-    is_active:      Mapped[bool]       = mapped_column(Boolean, default=True)
-    created_at:     Mapped[datetime]   = mapped_column(DateTime(timezone=True), default=_utcnow)
-    updated_at:     Mapped[datetime]   = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+    is_active:      Mapped[bool]        = mapped_column(Boolean, default=True)
+    settings:       Mapped[dict | None] = mapped_column(JSON)
+    created_at:     Mapped[datetime]    = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at:     Mapped[datetime]    = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
 
 
 class GroupRegistration(Base):

@@ -73,6 +73,19 @@ export interface GroupRegistrationSummary {
   created_at:        string
 }
 
+export interface FormConfig {
+  id:             number
+  slug:           string
+  title_en:       string
+  title_ar:       string | null
+  description_en: string | null
+  description_ar: string | null
+  is_active:      boolean
+  settings:       FormSettings | null
+  created_at:     string
+  updated_at:     string
+}
+
 export interface TrainingCourse {
   id:             number
   sector:         string
@@ -91,7 +104,30 @@ export const SECTORS = [
   'CONTROL',
 ] as const
 
+export const DEFAULT_DELIVERY_MODES = ['Blended', 'In-Person', 'Virtual']
+
 export const DELIVERY_MODES = ['Blended', 'In-Person', 'Virtual'] as const
+
+export interface FormSettings {
+  // Landing page
+  cta_text_en?:      string
+  cta_text_ar?:      string
+  show_info_cards?:  boolean
+  info_cards?: Array<{
+    icon:     string
+    label_en: string
+    label_ar: string
+    desc_en:  string
+    desc_ar:  string
+  }>
+  // Form content
+  pdpl_text_en?:     string
+  pdpl_text_ar?:     string
+  delivery_modes?:   string[]
+  // Submit button
+  submit_text_en?:   string
+  submit_text_ar?:   string
+}
 
 export const SECTOR_LABELS: Record<string, { en: string; ar: string }> = {
   BUSINESS:   { en: 'Business Sector',    ar: 'قطاع الأعمال' },
