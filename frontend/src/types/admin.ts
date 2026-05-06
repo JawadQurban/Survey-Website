@@ -6,6 +6,13 @@ export interface AdminUser {
   is_superadmin: boolean
   last_login_at: string | null
   created_at: string
+  permissions: string[]
+}
+
+export function hasPermission(user: AdminUser | null, permission: string): boolean {
+  if (!user) return false
+  if (user.is_superadmin || user.permissions.includes('*')) return true
+  return user.permissions.includes(permission)
 }
 
 export interface Organization {

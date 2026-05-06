@@ -14,11 +14,13 @@ from app.core.logging import configure_logging
 from app.core.database import check_db_connection
 
 from app.api.public import verify, surveys, submissions, begin as survey_begin
+from app.api.public import group_registration as public_group_reg
 from app.api.admin import (
     auth, organizations, contacts,
     surveys as admin_surveys, questions, sections as admin_sections,
     submissions as admin_submissions, dashboard, cms, options as admin_options,
 )
+from app.api.admin import group_registration as admin_group_reg
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -73,10 +75,11 @@ def create_app() -> FastAPI:
 
     # Public routes — survey experience, completely unchanged
     public_prefix = "/api/public"
-    app.include_router(verify.router,          prefix=public_prefix)
-    app.include_router(surveys.router,          prefix=public_prefix)
-    app.include_router(survey_begin.router,     prefix=public_prefix)
-    app.include_router(submissions.router,      prefix=public_prefix)
+    app.include_router(verify.router,              prefix=public_prefix)
+    app.include_router(surveys.router,             prefix=public_prefix)
+    app.include_router(survey_begin.router,        prefix=public_prefix)
+    app.include_router(submissions.router,         prefix=public_prefix)
+    app.include_router(public_group_reg.router,    prefix=public_prefix)
 
     # Admin routes
     admin_prefix = "/api/admin"
@@ -90,6 +93,7 @@ def create_app() -> FastAPI:
     app.include_router(dashboard.router,         prefix=admin_prefix)
     app.include_router(cms.router,               prefix=admin_prefix)
     app.include_router(admin_options.router,     prefix=admin_prefix)
+    app.include_router(admin_group_reg.router,   prefix=admin_prefix)
 
     @app.get("/health")
     def health():

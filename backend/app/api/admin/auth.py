@@ -84,6 +84,22 @@ def logout(
     return {"message": "Logged out"}
 
 
-@router.get("/me", response_model=AdminUserOut)
+@router.get("/me")
 def get_me(current_admin: AdminUser = Depends(get_current_admin)):
-    return current_admin
+    perms: set[str] = set()
+    if current_admin.is_superadmin:
+        perms.add("*")
+    else:
+        for user_role in current_admin.user_roles:
+            for p in (user_role.role.permissions or []):
+                perms.add(p)
+    return {
+        "id":            current_admin.id,
+        "email":         current_admin.email,
+        "full_name":     current_admin.full_name,
+        "is_active":     current_admin.is_active,
+        "is_superadmin": current_admin.is_superadmin,
+        "last_login_at": current_admin.last_login_at,
+        "created_at":    current_admin.created_at,
+        "permissions":   sorted(perms),
+    }

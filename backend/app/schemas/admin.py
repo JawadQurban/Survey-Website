@@ -20,6 +20,7 @@ class AdminUserOut(BaseModel):
     is_superadmin: bool
     last_login_at: datetime | None
     created_at: datetime
+    permissions: list[str] = []
 
     model_config = {"from_attributes": True}
 

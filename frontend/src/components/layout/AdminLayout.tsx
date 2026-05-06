@@ -11,18 +11,25 @@ import {
   Layers,
   Settings,
   LogOut,
+  BookOpen,
+  Users,
 } from 'lucide-react'
 
-const navItems = [
-  { to: '/admin/dashboard',   label: 'admin.nav.dashboard',   icon: LayoutDashboard },
-  { to: '/admin/surveys',     label: 'admin.nav.surveys',     icon: ClipboardList },
-  { to: '/admin/submissions', label: 'admin.nav.submissions', icon: FileText },
-  { to: '/admin/cms',         label: 'admin.nav.cms',         icon: Layers },
-  { to: '/admin/settings',    label: 'admin.nav.settings',    icon: Settings },
+const coreNavItems = [
+  { to: '/admin/dashboard',   label: 'admin.nav.dashboard',   icon: LayoutDashboard,  permission: null },
+  { to: '/admin/surveys',     label: 'admin.nav.surveys',     icon: ClipboardList,    permission: null },
+  { to: '/admin/submissions', label: 'admin.nav.submissions', icon: FileText,         permission: null },
+  { to: '/admin/cms',         label: 'admin.nav.cms',         icon: Layers,           permission: null },
+  { to: '/admin/settings',    label: 'admin.nav.settings',    icon: Settings,         permission: null },
+]
+
+const groupRegNavItems = [
+  { to: '/admin/group-registration', label: 'admin.nav.group_registration', icon: Users,     permission: 'surveys.group_registration.manage' },
+  { to: '/admin/training-courses',   label: 'admin.nav.training_courses',   icon: BookOpen,  permission: 'surveys.group_registration.manage' },
 ]
 
 export function AdminLayout() {
-  const { admin, setAdmin } = useAuthStore()
+  const { admin, setAdmin, can } = useAuthStore()
   const { language } = useLanguageStore()
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -48,16 +55,12 @@ export function AdminLayout() {
           <p className="text-xs text-white/50 mt-1.5 font-medium tracking-wide uppercase">Survey Platform</p>
         </div>
 
-        <nav className="flex-1 px-2 py-3 space-y-0.5">
-          {navItems.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
+        <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
+          {coreNavItems.map(({ to, label, icon: Icon }) => (
+            <NavLink key={to} to={to}
               className={({ isActive }) =>
                 `flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors ${
-                  isActive
-                    ? 'bg-white/15 text-white font-medium'
-                    : 'text-white/65 hover:bg-white/8 hover:text-white/90'
+                  isActive ? 'bg-white/15 text-white font-medium' : 'text-white/65 hover:bg-white/8 hover:text-white/90'
                 }`
               }
             >
@@ -65,6 +68,28 @@ export function AdminLayout() {
               {t(label, language)}
             </NavLink>
           ))}
+
+          {/* Group Registration section — shown only if user has the permission */}
+          {groupRegNavItems.some(({ permission }) => !permission || can(permission)) && (
+            <>
+              <div className="border-t border-white/10 my-2" />
+              <p className="px-3 py-1 text-xs text-white/30 uppercase tracking-widest">Group Registration</p>
+              {groupRegNavItems
+                .filter(({ permission }) => !permission || can(permission))
+                .map(({ to, label, icon: Icon }) => (
+                  <NavLink key={to} to={to}
+                    className={({ isActive }) =>
+                      `flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors ${
+                        isActive ? 'bg-white/15 text-white font-medium' : 'text-white/65 hover:bg-white/8 hover:text-white/90'
+                      }`
+                    }
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {t(label, language)}
+                  </NavLink>
+                ))}
+            </>
+          )}
         </nav>
 
         <div className="px-2 py-3 border-t border-white/10">

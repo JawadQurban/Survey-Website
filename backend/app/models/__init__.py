@@ -15,6 +15,7 @@ from app.models.survey import (
 from app.models.submission import Submission, Answer, SubmissionEvent
 from app.models.verification import VerificationAttempt
 from app.models.cms import CmsPage, CmsPageTranslation, EmailTemplate, EmailTemplateTranslation, BrandingSettings
+from app.models.group_registration import TrainingCourse, GroupRegistration
 
 __all__ = [
     "AdminUser", "AdminRole", "AdminUserRole", "RefreshToken", "AdminAuditLog",
@@ -25,4 +26,5 @@ __all__ = [
     "Submission", "Answer", "SubmissionEvent",
     "VerificationAttempt",
     "CmsPage", "CmsPageTranslation", "EmailTemplate", "EmailTemplateTranslation", "BrandingSettings",
+    "TrainingCourse", "GroupRegistration",
 ]

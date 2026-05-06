@@ -48,3 +48,30 @@ def get_survey_session(
     if payload.get("type") != "survey_session":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session type")
     return payload
+
+
+def has_permission(user: AdminUser, permission: str) -> bool:
+    """Return True if user has the given permission key.
+
+    Superadmins bypass all permission checks for backward compatibility.
+    Regular admins need a role that contains the permission key.
+    """
+    if user.is_superadmin:
+        return True
+    for user_role in user.user_roles:
+        perms = user_role.role.permissions or []
+        if permission in perms:
+            return True
+    return False
+
+
+def require_permission(permission: str):
+    """Dependency factory — gates an endpoint behind a permission key."""
+    def _dependency(current_admin: AdminUser = Depends(get_current_admin)) -> AdminUser:
+        if not has_permission(current_admin, permission):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Permission required: {permission}",
+            )
+        return current_admin
+    return _dependency

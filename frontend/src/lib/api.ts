@@ -58,6 +58,14 @@ export const publicApi = {
 
   getMySubmission: (surveySlug: string) =>
     api.get('/public/submissions/my', { params: { survey_slug: surveySlug } }),
+
+  // Group Registration (public — no auth)
+  getGroupRegCatalog: () =>
+    api.get('/public/group-registration/catalog'),
+  submitGroupRegistration: (data: object) =>
+    api.post('/public/group-registration/submit', data),
+  getGroupRegistrationByRef: (ref: string) =>
+    api.get(`/public/group-registration/submission/${ref}`),
 }
 
 // Admin
@@ -113,6 +121,24 @@ export const adminApi = {
     api.get('/admin/submissions/export/csv', { params, responseType: 'blob' }),
   exportXlsx: (params?: object) =>
     api.get('/admin/submissions/export/xlsx', { params, responseType: 'blob' }),
+
+  // Group Registration Admin
+  listGroupRegistrations: (params?: object) =>
+    api.get('/admin/group-registration', { params }),
+  getGroupRegistration: (id: number) =>
+    api.get(`/admin/group-registration/${id}`),
+  exportGroupRegistrationsXlsx: () =>
+    api.get('/admin/group-registration/export/xlsx', { responseType: 'blob' }),
+
+  // Training Courses Admin
+  listTrainingCourses: () =>
+    api.get('/admin/group-registration/courses'),
+  createTrainingCourse: (data: object) =>
+    api.post('/admin/group-registration/courses', data),
+  updateTrainingCourse: (id: number, data: object) =>
+    api.put(`/admin/group-registration/courses/${id}`, data),
+  deactivateTrainingCourse: (id: number) =>
+    api.delete(`/admin/group-registration/courses/${id}`),
 
   // CMS
   listCmsPages: () => api.get('/admin/cms/pages'),
