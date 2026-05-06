@@ -21,7 +21,7 @@ router = APIRouter(prefix="/group-registration", tags=["admin-group-registration
 PERM = "surveys.group_registration.manage"
 
 
-# ── Submissions ───────────────────────────────────────────────────────────────
+# ── Submissions list (static path first) ─────────────────────────────────────
 
 @router.get("", response_model=dict)
 def list_registrations(
@@ -57,17 +57,7 @@ def list_registrations(
     }
 
 
-@router.get("/{reg_id}", response_model=GroupRegistrationOut)
-def get_registration(
-    reg_id: int,
-    db:    Session  = Depends(get_db),
-    _:     AdminUser = Depends(require_permission(PERM)),
-):
-    reg = GroupRegistrationRepository(db).get_by_id(reg_id)
-    if not reg:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Registration not found")
-    return reg
-
+# ── Export (static path — must be before /{reg_id}) ──────────────────────────
 
 @router.get("/export/xlsx")
 def export_xlsx(
@@ -118,7 +108,6 @@ def export_xlsx(
             r.submitted_at.isoformat() if r.submitted_at else "",
         ])
 
-    # Nominations detail sheet
     ws2 = wb.create_sheet("Nominations Detail")
     ws2.append(["Reference", "Org", "Row #", "Sector", "Functional Area",
                 "Course Code", "Course Title", "Delivery Mode", "Quarters", "Nominations"])
@@ -151,7 +140,7 @@ def export_xlsx(
     )
 
 
-# ── Form configs ─────────────────────────────────────────────────────────────
+# ── Form configs (static paths — must be before /{reg_id}) ───────────────────
 
 @router.get("/configs", response_model=list[GroupRegistrationConfigOut])
 def list_configs(
@@ -210,7 +199,7 @@ def delete_config(
     db.commit()
 
 
-# ── Course catalog management ─────────────────────────────────────────────────
+# ── Course catalog (static paths — must be before /{reg_id}) ─────────────────
 
 @router.get("/courses", response_model=list[TrainingCourseOut])
 def list_courses(
@@ -267,3 +256,17 @@ def deactivate_course(
     course.is_active = False
     AdminRepository(db).log_action(admin.id, "course_deactivated", "training_course", str(course_id))
     db.commit()
+
+
+# ── Single submission (parameterized path — MUST be last) ────────────────────
+
+@router.get("/{reg_id}", response_model=GroupRegistrationOut)
+def get_registration(
+    reg_id: int,
+    db:    Session  = Depends(get_db),
+    _:     AdminUser = Depends(require_permission(PERM)),
+):
+    reg = GroupRegistrationRepository(db).get_by_id(reg_id)
+    if not reg:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Registration not found")
+    return reg
