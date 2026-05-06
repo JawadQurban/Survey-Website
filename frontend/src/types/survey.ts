@@ -91,14 +91,6 @@ export interface Survey {
   sections: SurveySection[]
 }
 
-export interface SurveyOverview {
-  survey_id: number
-  slug: string
-  title: string
-  description: string | null
-  instructions: string | null
-}
-
 export interface AnswerInput {
   question_id: number
   selected_option_keys?: string[]
@@ -150,16 +142,43 @@ export interface SurveyIntroConfig {
   org_size?: IntroQuestionConfig
 }
 
+export interface LandingInfoCard {
+  icon:     string
+  label_en: string
+  label_ar: string
+  desc_en:  string
+  desc_ar:  string
+}
+
+export interface SurveyLandingConfig {
+  hero_subtitle_en?: string
+  hero_subtitle_ar?: string
+  cta_text_en?:      string
+  cta_text_ar?:      string
+  show_info_cards?:  boolean
+  info_cards?:       LandingInfoCard[]
+}
+
 export interface SurveyListItem {
   id: number
   slug: string
   title: string
-  description:   string | null
-  skip_intro:    boolean
-  show_role:     boolean
-  show_sector:   boolean
-  show_org_size: boolean
-  intro_config:  SurveyIntroConfig
+  description:    string | null
+  skip_intro:     boolean
+  show_role:      boolean
+  show_sector:    boolean
+  show_org_size:  boolean
+  intro_config:   SurveyIntroConfig
+  landing_config?: SurveyLandingConfig | null
+}
+
+export interface SurveyOverview {
+  survey_id:       number
+  slug:            string
+  title:           string
+  description:     string | null
+  instructions:    string | null
+  landing_config?: SurveyLandingConfig | null
 }
 
 export interface SurveyBeginOut {

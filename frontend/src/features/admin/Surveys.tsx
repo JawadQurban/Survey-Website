@@ -8,8 +8,8 @@ import { PageSpinner } from '@/components/ui/Spinner'
 import { adminApi } from '@/lib/api'
 import type { Survey } from '@/types/survey'
 import { getTranslation } from '@/lib/i18n'
-import { ChevronDown, ChevronUp, ClipboardList, ExternalLink, Pencil, Plus, Trash2, X } from 'lucide-react'
-import type { IntroOption, IntroQuestionConfig, SurveyIntroConfig } from '@/types/survey'
+import { Check, ChevronDown, ChevronUp, ClipboardList, ExternalLink, Link2, Pencil, Plus, Trash2, X } from 'lucide-react'
+import type { IntroOption, IntroQuestionConfig, LandingInfoCard, SurveyIntroConfig, SurveyLandingConfig } from '@/types/survey'
 
 // ─── Default intro configs (mirrors SurveyForm.tsx constants) ────────────────
 const DEFAULT_ROLE_CONFIG: IntroQuestionConfig = {
@@ -54,6 +54,42 @@ const EMPTY_INTRO_CONFIG: SurveyIntroConfig = {
   org_size: { ...DEFAULT_ORG_SIZE_CONFIG, options: DEFAULT_ORG_SIZE_CONFIG.options?.map((o) => ({ ...o })) },
 }
 
+// ─── Landing page defaults ────────────────────────────────────────────────────
+interface LandingForm {
+  hero_subtitle_en: string
+  hero_subtitle_ar: string
+  cta_text_en:      string
+  cta_text_ar:      string
+  show_info_cards:  boolean
+  info_cards:       LandingInfoCard[]
+}
+
+const DEFAULT_LANDING_CARDS: LandingInfoCard[] = [
+  { icon: '5-10', label_en: 'minutes approx.',   label_ar: 'دقائق تقريباً', desc_en: 'Survey completion time',                desc_ar: 'وقت إتمام الاستطلاع' },
+  { icon: '3',    label_en: 'roles',              label_ar: 'أدوار',         desc_en: 'CEO, CHRO, L&D Leader',                 desc_ar: 'الرئيس التنفيذي، مدير الموارد البشرية، قائد التعلم' },
+  { icon: '100%', label_en: 'confidential',       label_ar: 'سري',           desc_en: 'Your data is protected and aggregated', desc_ar: 'بياناتك محمية ومجمّعة' },
+]
+
+const EMPTY_LANDING: LandingForm = {
+  hero_subtitle_en: '',
+  hero_subtitle_ar: '',
+  cta_text_en:      'Begin Survey',
+  cta_text_ar:      'ابدأ الاستطلاع',
+  show_info_cards:  true,
+  info_cards:       DEFAULT_LANDING_CARDS.map((c) => ({ ...c })),
+}
+
+function landingFromConfig(lc?: SurveyLandingConfig | null): LandingForm {
+  return {
+    hero_subtitle_en: lc?.hero_subtitle_en ?? '',
+    hero_subtitle_ar: lc?.hero_subtitle_ar ?? '',
+    cta_text_en:      lc?.cta_text_en      ?? 'Begin Survey',
+    cta_text_ar:      lc?.cta_text_ar      ?? 'ابدأ الاستطلاع',
+    show_info_cards:  lc?.show_info_cards  ?? true,
+    info_cards:       lc?.info_cards?.length ? lc.info_cards.map((c) => ({ ...c })) : DEFAULT_LANDING_CARDS.map((c) => ({ ...c })),
+  }
+}
+
 // ─── Shared field styles ──────────────────────────────────────────────────────
 const INPUT = 'w-full rounded-lg border border-tfa-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tfa-navy'
 const LABEL = 'text-xs font-semibold text-tfa-gray-500 uppercase tracking-wide mb-1 block'
@@ -74,6 +110,7 @@ interface SurveyForm {
   show_sector:      boolean
   show_org_size:    boolean
   intro_config:     SurveyIntroConfig
+  landing:          LandingForm
 }
 
 const EMPTY: SurveyForm = {
@@ -83,6 +120,7 @@ const EMPTY: SurveyForm = {
   is_active: true, skip_intro: false,
   show_role: true, show_sector: true, show_org_size: true,
   intro_config: JSON.parse(JSON.stringify(EMPTY_INTRO_CONFIG)),
+  landing: JSON.parse(JSON.stringify(EMPTY_LANDING)),
 }
 
 function toApiPayload(form: SurveyForm, includeSlug = true) {
@@ -95,6 +133,14 @@ function toApiPayload(form: SurveyForm, includeSlug = true) {
       show_sector:   form.show_sector,
       show_org_size: form.show_org_size,
       intro_config:  form.intro_config,
+      landing_config: {
+        hero_subtitle_en: form.landing.hero_subtitle_en || undefined,
+        hero_subtitle_ar: form.landing.hero_subtitle_ar || undefined,
+        cta_text_en:      form.landing.cta_text_en      || undefined,
+        cta_text_ar:      form.landing.cta_text_ar      || undefined,
+        show_info_cards:  form.landing.show_info_cards,
+        info_cards:       form.landing.info_cards,
+      },
     },
     translations: [
       {
@@ -222,6 +268,139 @@ function IntroQuestionEditor({
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Landing page form fields ─────────────────────────────────────────────────
+function LandingPageFormFields({ form, onChange, slug }: {
+  form:     LandingForm
+  onChange: (patch: Partial<LandingForm>) => void
+  slug?:    string
+}) {
+  const [copied, setCopied] = useState(false)
+
+  const updateCard = (idx: number, patch: Partial<LandingInfoCard>) => {
+    const cards = [...form.info_cards]
+    cards[idx] = { ...cards[idx], ...patch }
+    onChange({ info_cards: cards })
+  }
+
+  const surveyUrl = slug ? `${window.location.origin}/survey/${slug}` : null
+
+  const copyLink = () => {
+    if (!surveyUrl) return
+    navigator.clipboard.writeText(surveyUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Survey link */}
+      {surveyUrl && (
+        <div className="flex items-center gap-2 bg-tfa-gray-50 border border-tfa-gray-200 rounded-lg px-3 py-2.5">
+          <span className="text-xs text-tfa-gray-500 flex-1 font-mono truncate">{surveyUrl}</span>
+          <button
+            type="button"
+            onClick={copyLink}
+            className="flex items-center gap-1.5 text-xs font-medium text-tfa-navy hover:text-tfa-navy/70 shrink-0 transition-colors"
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Link2 className="h-3.5 w-3.5" />}
+            {copied ? 'Copied!' : 'Copy Link'}
+          </button>
+        </div>
+      )}
+
+      {/* Subtitle */}
+      <div>
+        <p className={`${LABEL} mb-2`}>Hero Subtitle <span className="text-tfa-gray-300 font-normal">(optional — shown below the title)</span></p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={LABEL}>Subtitle (EN)</label>
+            <input className={INPUT} placeholder="e.g. The Financial Academy Strategy Refresh"
+              value={form.hero_subtitle_en}
+              onChange={(e) => onChange({ hero_subtitle_en: e.target.value })} />
+          </div>
+          <div>
+            <label className={LABEL}>Subtitle (AR)</label>
+            <input className={INPUT} dir="rtl" placeholder="العنوان الفرعي"
+              value={form.hero_subtitle_ar}
+              onChange={(e) => onChange({ hero_subtitle_ar: e.target.value })} />
+          </div>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div>
+        <p className={`${LABEL} mb-2`}>Call-to-Action Button</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={LABEL}>Button Text (EN)</label>
+            <input className={INPUT} placeholder="Begin Survey"
+              value={form.cta_text_en}
+              onChange={(e) => onChange({ cta_text_en: e.target.value })} />
+          </div>
+          <div>
+            <label className={LABEL}>Button Text (AR)</label>
+            <input className={INPUT} dir="rtl" placeholder="ابدأ الاستطلاع"
+              value={form.cta_text_ar}
+              onChange={(e) => onChange({ cta_text_ar: e.target.value })} />
+          </div>
+        </div>
+      </div>
+
+      {/* Info cards */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <p className={LABEL}>Info Cards</p>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" checked={form.show_info_cards}
+              onChange={(e) => onChange({ show_info_cards: e.target.checked })}
+              className="h-4 w-4 rounded border-tfa-gray-300 text-tfa-navy" />
+            <span className="text-xs text-tfa-gray-600">Show on landing page</span>
+          </label>
+        </div>
+
+        {form.show_info_cards && (
+          <div className="space-y-3">
+            {form.info_cards.map((card, idx) => (
+              <div key={idx} className="border border-tfa-gray-200 rounded-lg p-3 space-y-2">
+                <div className="flex gap-2">
+                  <div className="w-20">
+                    <label className={LABEL}>Icon</label>
+                    <input className={INPUT} placeholder="5-10" value={card.icon}
+                      onChange={(e) => updateCard(idx, { icon: e.target.value })} />
+                  </div>
+                  <div className="flex-1">
+                    <label className={LABEL}>Label (EN)</label>
+                    <input className={INPUT} placeholder="minutes approx." value={card.label_en}
+                      onChange={(e) => updateCard(idx, { label_en: e.target.value })} />
+                  </div>
+                  <div className="flex-1">
+                    <label className={LABEL}>Label (AR)</label>
+                    <input className={INPUT} dir="rtl" placeholder="دقائق" value={card.label_ar}
+                      onChange={(e) => updateCard(idx, { label_ar: e.target.value })} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className={LABEL}>Description (EN)</label>
+                    <input className={INPUT} placeholder="Survey completion time" value={card.desc_en}
+                      onChange={(e) => updateCard(idx, { desc_en: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>Description (AR)</label>
+                    <input className={INPUT} dir="rtl" placeholder="وقت إتمام الاستطلاع" value={card.desc_ar}
+                      onChange={(e) => updateCard(idx, { desc_ar: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -380,6 +559,7 @@ function SurveyFormFields({ form, onChange, showSlug = false }: {
 // ─── Create modal ─────────────────────────────────────────────────────────────
 function CreateSurveyModal({ onClose }: { onClose: () => void }) {
   const [form, setForm] = useState<SurveyForm>(EMPTY)
+  const [tab, setTab]   = useState<'details' | 'landing'>('details')
   const [error, setError] = useState('')
   const qc = useQueryClient()
 
@@ -394,7 +574,7 @@ function CreateSurveyModal({ onClose }: { onClose: () => void }) {
   })
 
   const handleSubmit = () => {
-    if (!form.slug.trim())    return setError('Slug is required')
+    if (!form.slug.trim())     return setError('Slug is required')
     if (!form.title_en.trim()) return setError('English title is required')
     setError('')
     mut.mutate()
@@ -404,13 +584,36 @@ function CreateSurveyModal({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative bg-white rounded border border-tfa-gray-200 shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-tfa-gray-800">New Survey</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-tfa-gray-100 text-tfa-gray-400">
             <X className="h-5 w-5" />
           </button>
         </div>
-        <SurveyFormFields form={form} onChange={(p) => setForm((f) => ({ ...f, ...p }))} showSlug />
+
+        {/* Tabs */}
+        <div className="flex gap-0 border-b border-tfa-gray-200 mb-5 -mx-6 px-6">
+          {(['details', 'landing'] as const).map((t) => (
+            <button key={t} type="button" onClick={() => setTab(t)}
+              className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                tab === t ? 'border-tfa-navy text-tfa-navy' : 'border-transparent text-tfa-gray-500 hover:text-tfa-gray-700'
+              }`}>
+              {t === 'details' ? 'Survey Details' : 'Landing Page'}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'details' && (
+          <SurveyFormFields form={form} onChange={(p) => setForm((f) => ({ ...f, ...p }))} showSlug />
+        )}
+        {tab === 'landing' && (
+          <LandingPageFormFields
+            form={form.landing}
+            onChange={(p) => setForm((f) => ({ ...f, landing: { ...f.landing, ...p } }))}
+            slug={form.slug.trim() || undefined}
+          />
+        )}
+
         {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
         <div className="flex gap-2 pt-4">
           <Button onClick={handleSubmit} loading={mut.isPending} className="flex-1">Create Survey</Button>
@@ -423,10 +626,11 @@ function CreateSurveyModal({ onClose }: { onClose: () => void }) {
 
 // ─── Edit modal ───────────────────────────────────────────────────────────────
 function EditSurveyModal({ survey, onClose }: { survey: Survey; onClose: () => void }) {
-  const transEn = getTranslation(survey.translations, 'en')
-  const transAr = getTranslation(survey.translations, 'ar')
+  const transEn  = getTranslation(survey.translations, 'en')
+  const transAr  = getTranslation(survey.translations, 'ar')
   const settings = (survey as any).settings ?? {}
 
+  const [tab, setTab] = useState<'details' | 'landing'>('details')
   const [form, setForm] = useState<SurveyForm>({
     slug:            survey.slug,
     title_en:        transEn?.title ?? '',
@@ -435,16 +639,17 @@ function EditSurveyModal({ survey, onClose }: { survey: Survey; onClose: () => v
     desc_ar:         transAr?.description ?? '',
     instructions_en: transEn?.instructions ?? '',
     instructions_ar: transAr?.instructions ?? '',
-    is_active:    survey.is_active,
-    skip_intro:   Boolean(settings.skip_intro),
-    show_role:    settings.show_role    !== false,
-    show_sector:  settings.show_sector  !== false,
-    show_org_size:settings.show_org_size !== false,
+    is_active:     survey.is_active,
+    skip_intro:    Boolean(settings.skip_intro),
+    show_role:     settings.show_role     !== false,
+    show_sector:   settings.show_sector   !== false,
+    show_org_size: settings.show_org_size !== false,
     intro_config: {
       role:     settings.intro_config?.role     ?? JSON.parse(JSON.stringify(DEFAULT_ROLE_CONFIG)),
       sector:   settings.intro_config?.sector   ?? JSON.parse(JSON.stringify(DEFAULT_SECTOR_CONFIG)),
       org_size: settings.intro_config?.org_size ?? JSON.parse(JSON.stringify(DEFAULT_ORG_SIZE_CONFIG)),
     },
+    landing: landingFromConfig(settings.landing_config),
   })
   const [error, setError] = useState('')
   const qc = useQueryClient()
@@ -453,7 +658,8 @@ function EditSurveyModal({ survey, onClose }: { survey: Survey; onClose: () => v
     mutationFn: () => adminApi.updateSurvey(survey.id, toApiPayload(form, false)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-surveys'] })
-      qc.invalidateQueries({ queryKey: ['active-surveys'] })  // clear public cache so settings apply immediately
+      qc.invalidateQueries({ queryKey: ['active-surveys'] })
+      qc.invalidateQueries({ queryKey: ['survey-landing'] })
       onClose()
     },
     onError: (err: any) => setError(err?.response?.data?.detail ?? 'Failed to save'),
@@ -463,7 +669,7 @@ function EditSurveyModal({ survey, onClose }: { survey: Survey; onClose: () => v
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative bg-white rounded border border-tfa-gray-200 shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-bold text-tfa-gray-800">Edit Survey</h2>
             <p className="text-xs text-tfa-gray-400 font-mono">/{survey.slug}</p>
@@ -472,7 +678,30 @@ function EditSurveyModal({ survey, onClose }: { survey: Survey; onClose: () => v
             <X className="h-5 w-5" />
           </button>
         </div>
-        <SurveyFormFields form={form} onChange={(p) => setForm((f) => ({ ...f, ...p }))} />
+
+        {/* Tabs */}
+        <div className="flex gap-0 border-b border-tfa-gray-200 mb-5 -mx-6 px-6">
+          {(['details', 'landing'] as const).map((t) => (
+            <button key={t} type="button" onClick={() => setTab(t)}
+              className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                tab === t ? 'border-tfa-navy text-tfa-navy' : 'border-transparent text-tfa-gray-500 hover:text-tfa-gray-700'
+              }`}>
+              {t === 'details' ? 'Survey Details' : 'Landing Page'}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'details' && (
+          <SurveyFormFields form={form} onChange={(p) => setForm((f) => ({ ...f, ...p }))} />
+        )}
+        {tab === 'landing' && (
+          <LandingPageFormFields
+            form={form.landing}
+            onChange={(p) => setForm((f) => ({ ...f, landing: { ...f.landing, ...p } }))}
+            slug={survey.slug}
+          />
+        )}
+
         {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
         <div className="flex gap-2 pt-4">
           <Button onClick={() => mut.mutate()} loading={mut.isPending} className="flex-1">Save Changes</Button>
@@ -489,6 +718,15 @@ export function Surveys() {
   const qc = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
   const [editingSurvey, setEditingSurvey] = useState<Survey | null>(null)
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null)
+
+  const copyLink = (slug: string) => {
+    const url = `${window.location.origin}/survey/${slug}`
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedSlug(slug)
+      setTimeout(() => setCopiedSlug((s) => s === slug ? null : s), 2000)
+    })
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-surveys'],
@@ -549,6 +787,11 @@ export function Surveys() {
                   <p className="text-xs text-tfa-gray-400 mt-1 font-mono">/{s.slug}</p>
                 </div>
                 <div className="flex gap-2 shrink-0">
+                  <Button variant="ghost" size="sm" onClick={() => copyLink(s.slug)}>
+                    {copiedSlug === s.slug
+                      ? <><Check className="h-4 w-4 text-green-500" /> Copied!</>
+                      : <><Link2 className="h-4 w-4" /> Copy Link</>}
+                  </Button>
                   <Button variant="ghost" size="sm" onClick={() => setEditingSurvey(s)}>
                     <Pencil className="h-4 w-4" /> Edit
                   </Button>

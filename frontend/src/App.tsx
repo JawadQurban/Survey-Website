@@ -11,6 +11,7 @@ import { useLanguageStore } from '@/store/languageStore'
 import { useEffect } from 'react'
 
 const LandingPage = lazy(() => import('@/features/public/LandingPage').then((m) => ({ default: m.LandingPage })))
+const SurveyLandingPage = lazy(() => import('@/features/public/SurveyLandingPage').then((m) => ({ default: m.SurveyLandingPage })))
 const SurveyForm = lazy(() => import('@/features/public/SurveyForm').then((m) => ({ default: m.SurveyForm })))
 const SurveyReview = lazy(() => import('@/features/public/SurveyReview').then((m) => ({ default: m.SurveyReview })))
 const ThankYou = lazy(() => import('@/features/public/ThankYou').then((m) => ({ default: m.ThankYou })))
@@ -45,6 +46,7 @@ export default function App() {
             <Route element={<PublicLayout />}>
               <Route path="/" element={<LandingPage />} />
                 {/* Legacy onboarding/overview URLs redirect directly to the survey form */}
+              <Route path="/survey/:surveySlug" element={<SurveyLandingPage />} />
               <Route path="/survey/:surveySlug/begin" element={<RedirectToStart />} />
               <Route path="/survey/:surveySlug/overview" element={<RedirectToStart />} />
               <Route path="/survey/:surveySlug/start" element={<SurveyForm />} />

@@ -25,15 +25,16 @@ def list_active_surveys(
         )
         settings = survey.settings or {}
         result.append({
-            "id":           survey.id,
-            "slug":         survey.slug,
-            "title":        translation.title if translation else survey.slug,
-            "description":  translation.description if translation else None,
-            "skip_intro":   bool(settings.get("skip_intro",   False)),
-            "show_role":    bool(settings.get("show_role",    True)),
-            "show_sector":  bool(settings.get("show_sector",  True)),
-            "show_org_size":bool(settings.get("show_org_size",True)),
-            "intro_config": settings.get("intro_config", {}),
+            "id":             survey.id,
+            "slug":           survey.slug,
+            "title":          translation.title if translation else survey.slug,
+            "description":    translation.description if translation else None,
+            "skip_intro":     bool(settings.get("skip_intro",   False)),
+            "show_role":      bool(settings.get("show_role",    True)),
+            "show_sector":    bool(settings.get("show_sector",  True)),
+            "show_org_size":  bool(settings.get("show_org_size",True)),
+            "intro_config":   settings.get("intro_config", {}),
+            "landing_config": settings.get("landing_config"),
         })
     return result
 
@@ -104,12 +105,14 @@ def get_survey_overview(
     if not translation:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Survey translation not found")
 
+    settings = survey.settings or {}
     return {
-        "survey_id": survey.id,
-        "slug": survey.slug,
-        "title": translation.title,
-        "description": translation.description,
-        "instructions": translation.instructions,
+        "survey_id":      survey.id,
+        "slug":           survey.slug,
+        "title":          translation.title,
+        "description":    translation.description,
+        "instructions":   translation.instructions,
+        "landing_config": settings.get("landing_config"),
     }
 
 
