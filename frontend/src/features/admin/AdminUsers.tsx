@@ -7,7 +7,7 @@ import { PageSpinner } from '@/components/ui/Spinner'
 import { adminApi } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import {
-  Plus, Pencil, X, KeyRound, ShieldCheck, ShieldOff,
+  Plus, X, KeyRound, ShieldCheck, ShieldOff,
   UserCheck, UserX, ChevronDown, ChevronUp,
 } from 'lucide-react'
 
