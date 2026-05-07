@@ -238,16 +238,16 @@ class ExportService:
                 intro_values += _intro_answer_pair(ans_map, iq)
             ws1.append(_summary_meta(s) + intro_values)
 
-        # ── Sheet 2: Answers (full detail — all Q&A, both languages) ──────────
+        # ── Sheet 2: Answers (Q&A detail, same slim columns as Summary) ─────────
         ws2 = wb.create_sheet("Answers")
-        style_header(ws2, DETAIL_HEADERS + [
+        style_header(ws2, SUMMARY_HEADERS + [
             "Intro?", "Q#", "Question Key",
             "Question (EN)", "Question (AR)",
             "Answer (EN)", "Answer (AR)",
         ])
 
         for s in submissions:
-            meta = _detail_meta(s)
+            meta = _summary_meta(s)
             sorted_answers = sorted(
                 s.answers,
                 key=lambda a: a.question.display_order if a.question else 0,
