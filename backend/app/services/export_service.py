@@ -32,7 +32,7 @@ class ExportService:
                 s.organization.name_en if s.organization else "",
                 s.respondent_role,
                 s.respondent_email,
-                s.status.value,
+                str(s.status),
                 s.language_used,
                 s.submitted_at.isoformat() if s.submitted_at else "",
                 s.created_at.isoformat(),
