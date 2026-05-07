@@ -54,32 +54,7 @@ def list_submissions(
     return {"total": total, "items": items}
 
 
-@router.get("/{submission_id}", response_model=SubmissionOut)
-def get_submission(
-    submission_id: int,
-    db: Session = Depends(get_db),
-    _: AdminUser = Depends(get_current_admin),
-):
-    submission = SubmissionRepository(db).get_by_id(submission_id)
-    if not submission:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Submission not found")
-    return submission
-
-
-@router.post("/{submission_id}/reopen", response_model=SubmissionOut)
-def reopen_submission(
-    submission_id: int,
-    body: ReopenRequest,
-    db: Session = Depends(get_db),
-    current_admin: AdminUser = Depends(get_current_admin),
-):
-    svc = SubmissionService(db)
-    submission = svc.reopen(submission_id, current_admin.email, body.reason)
-    AdminRepository(db).log_action(
-        current_admin.id, "submission_reopened", "submission", str(submission_id), detail=body.reason
-    )
-    return submission
-
+# ── Static paths MUST come before /{submission_id} ───────────────────────────
 
 @router.get("/export/csv")
 def export_csv(
@@ -109,3 +84,32 @@ def export_xlsx(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": "attachment; filename=submissions.xlsx"},
     )
+
+
+# ── Parameterized path LAST ───────────────────────────────────────────────────
+
+@router.get("/{submission_id}", response_model=SubmissionOut)
+def get_submission(
+    submission_id: int,
+    db: Session = Depends(get_db),
+    _: AdminUser = Depends(get_current_admin),
+):
+    submission = SubmissionRepository(db).get_by_id(submission_id)
+    if not submission:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Submission not found")
+    return submission
+
+
+@router.post("/{submission_id}/reopen", response_model=SubmissionOut)
+def reopen_submission(
+    submission_id: int,
+    body: ReopenRequest,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    svc = SubmissionService(db)
+    submission = svc.reopen(submission_id, current_admin.email, body.reason)
+    AdminRepository(db).log_action(
+        current_admin.id, "submission_reopened", "submission", str(submission_id), detail=body.reason
+    )
+    return submission
