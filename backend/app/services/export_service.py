@@ -68,7 +68,7 @@ class ExportService:
             ws.write(row_idx, 1, s.organization.name_en if s.organization else "")
             ws.write(row_idx, 2, s.respondent_role)
             ws.write(row_idx, 3, s.respondent_email)
-            ws.write(row_idx, 4, s.status.value)
+            ws.write(row_idx, 4, str(s.status))
             ws.write(row_idx, 5, s.language_used)
             ws.write(row_idx, 6, s.submitted_at.isoformat() if s.submitted_at else "")
             ws.write(row_idx, 7, s.created_at.isoformat())
