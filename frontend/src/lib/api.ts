@@ -116,6 +116,10 @@ export const adminApi = {
   createSection: (data: object) => api.post('/admin/sections', data),
   deleteSection: (id: number) => api.delete(`/admin/sections/${id}`),
 
+  // Survey Analytics
+  getSurveyAnalytics: (surveyId: number, params?: { role?: string; date_from?: string; date_to?: string }) =>
+    api.get(`/admin/surveys/${surveyId}/analytics`, { params }),
+
   // Submissions
   listSubmissions: (params?: object) => api.get('/admin/submissions', { params }),
   getSubmission: (id: number) => api.get(`/admin/submissions/${id}`),

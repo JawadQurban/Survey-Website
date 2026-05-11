@@ -8,7 +8,7 @@ import { PageSpinner } from '@/components/ui/Spinner'
 import { adminApi } from '@/lib/api'
 import type { Survey } from '@/types/survey'
 import { getTranslation } from '@/lib/i18n'
-import { Check, ChevronDown, ChevronUp, ClipboardList, ExternalLink, Link2, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { BarChart2, Check, ChevronDown, ChevronUp, ClipboardList, ExternalLink, Link2, Pencil, Plus, Trash2, X } from 'lucide-react'
 import type { IntroOption, IntroQuestionConfig, LandingInfoCard, SurveyIntroConfig, SurveyLandingConfig } from '@/types/survey'
 
 // ─── Default intro configs (mirrors SurveyForm.tsx constants) ────────────────
@@ -794,6 +794,10 @@ export function Surveys() {
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => setEditingSurvey(s)}>
                     <Pencil className="h-4 w-4" /> Edit
+                  </Button>
+                  <Button variant="ghost" size="sm"
+                    onClick={() => navigate(`/admin/surveys/${s.id}/analytics`)}>
+                    <BarChart2 className="h-4 w-4" /> Analytics
                   </Button>
                   <Button variant="secondary" size="sm"
                     onClick={() => navigate(`/admin/surveys/${s.id}/builder`)}>

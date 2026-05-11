@@ -28,6 +28,7 @@ const GroupRegistrationAdmin = lazy(() => import('@/features/admin/GroupRegistra
 const GroupRegistrationForms = lazy(() => import('@/features/admin/GroupRegistrationForms').then((m) => ({ default: m.GroupRegistrationForms })))
 const TrainingCourses = lazy(() => import('@/features/admin/TrainingCourses').then((m) => ({ default: m.TrainingCourses })))
 const AdminUsers = lazy(() => import('@/features/admin/AdminUsers').then((m) => ({ default: m.AdminUsers })))
+const SurveyAnalytics = lazy(() => import('@/features/admin/SurveyAnalytics').then((m) => ({ default: m.SurveyAnalytics })))
 
 function RedirectToStart() {
   const { surveySlug } = useParams<{ surveySlug: string }>()
@@ -76,6 +77,7 @@ export default function App() {
                 <Route path="/admin/surveys" element={<Surveys />} />
                 <Route path="/admin/submissions" element={<Submissions />} />
                 <Route path="/admin/surveys/:surveyId/builder" element={<QuestionBuilder />} />
+                <Route path="/admin/surveys/:surveyId/analytics" element={<SurveyAnalytics />} />
                 <Route path="/admin/cms" element={<div className="p-4 text-tfa-gray-500">CMS management — coming in next iteration</div>} />
                 <Route path="/admin/settings" element={<div className="p-4 text-tfa-gray-500">Settings — coming in next iteration</div>} />
                 {/* Admin Users — superadmin only */}
