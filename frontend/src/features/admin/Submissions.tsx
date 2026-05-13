@@ -130,7 +130,12 @@ export function Submissions() {
 
   const handleExport = async (format: 'csv' | 'xlsx') => {
     const fn = format === 'csv' ? adminApi.exportCsv : adminApi.exportXlsx
-    const res = await fn()
+    const params = {
+      ...(surveyFilter && { survey_id: Number(surveyFilter) }),
+      ...(roleFilter   && { role: roleFilter }),
+      ...(statusFilter && { status_filter: statusFilter }),
+    }
+    const res = await fn(params)
     const url = URL.createObjectURL(new Blob([res.data]))
     const a = document.createElement('a')
     a.href = url

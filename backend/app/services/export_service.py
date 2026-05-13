@@ -1,15 +1,15 @@
 import io
 import csv
 from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy import select
 
 from app.models.submission import Submission, Answer
 from app.models.survey import Question, QuestionOption
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Translation / answer helpers ─────────────────────────────────────────────
 
 def _t(translations, lang: str) -> str:
-    """Return translation text for lang, fallback to 'en', then first available."""
     for t in translations:
         if t.language_code == lang:
             return t.text or ""
@@ -20,39 +20,31 @@ def _t(translations, lang: str) -> str:
 
 
 def _answer_text(answer: Answer, lang: str) -> str:
-    """Resolve an Answer to human-readable text in the given language."""
     q = answer.question
     if not q:
         return ""
-
     parts: list[str] = []
-
     if answer.selected_option_keys:
         opt_map = {o.option_key: o for o in q.options}
         for key in answer.selected_option_keys:
             opt = opt_map.get(key)
-            if opt:
-                parts.append(_t(opt.translations, lang))
-            else:
-                parts.append(key)
-
+            parts.append(_t(opt.translations, lang) if opt else key)
     if answer.open_text_value:
         parts.append(answer.open_text_value)
-
     if answer.numeric_value is not None and not parts:
         parts.append(str(answer.numeric_value))
-
     return " | ".join(parts)
 
 
-def _load_submissions(
-    db: Session,
-    survey_id: int | None,
-    org_id: int | None,
-) -> list[Submission]:
-    """Load submissions with full answer → question → translations eager-loaded."""
-    from sqlalchemy import select
+# ── Data loading ──────────────────────────────────────────────────────────────
 
+def _load_submissions(
+    db:        Session,
+    survey_id: int | None,
+    org_id:    int | None,
+    role:      str | None,
+    status:    str | None,
+) -> list[Submission]:
     q = (
         select(Submission)
         .options(
@@ -67,21 +59,19 @@ def _load_submissions(
         )
         .order_by(Submission.created_at.desc())
     )
-    if survey_id:
-        q = q.where(Submission.survey_id == survey_id)
-    if org_id:
-        q = q.where(Submission.organization_id == org_id)
-
+    if survey_id: q = q.where(Submission.survey_id == survey_id)
+    if org_id:    q = q.where(Submission.organization_id == org_id)
+    if role:      q = q.where(Submission.respondent_role == role)
+    if status:    q = q.where(Submission.status == status)
     return list(db.execute(q.limit(10_000)).scalars().unique().all())
 
 
 def _org_name(s: Submission) -> str:
-    if s.organization:
-        return s.organization.name_en or ""
-    return s.org_name_input or ""
+    return (s.organization.name_en if s.organization else None) or s.org_name_input or ""
 
 
-# ── Summary meta (Sheet 1) — no org/name/email ────────────────────────────────
+# ── Column definitions ────────────────────────────────────────────────────────
+
 SUMMARY_HEADERS = [
     "Submission ID", "Role", "Sector", "Org Size",
     "Language", "Status", "Submitted At",
@@ -89,17 +79,12 @@ SUMMARY_HEADERS = [
 
 def _summary_meta(s: Submission) -> list:
     return [
-        s.id,
-        s.respondent_role,
-        s.sector   or "",
-        s.org_size or "",
-        s.language_used,
+        s.id, s.respondent_role, s.sector or "",
+        s.org_size or "", s.language_used,
         str(s.status),
         s.submitted_at.isoformat() if s.submitted_at else "",
     ]
 
-
-# ── Full meta (Sheet 2 / CSV) — all columns ───────────────────────────────────
 DETAIL_HEADERS = [
     "Submission ID", "Organization", "Respondent Name", "Role", "Email",
     "Sector", "Org Size", "Language", "Status", "Submitted At",
@@ -107,23 +92,17 @@ DETAIL_HEADERS = [
 
 def _detail_meta(s: Submission) -> list:
     return [
-        s.id,
-        _org_name(s),
-        s.respondent_name  or "",
-        s.respondent_role,
-        s.respondent_email or "",
-        s.sector   or "",
-        s.org_size or "",
-        s.language_used,
+        s.id, _org_name(s), s.respondent_name or "",
+        s.respondent_role, s.respondent_email or "",
+        s.sector or "", s.org_size or "", s.language_used,
         str(s.status),
         s.submitted_at.isoformat() if s.submitted_at else "",
     ]
 
 
-# ── Intro question helpers ────────────────────────────────────────────────────
+# ── Intro questions ───────────────────────────────────────────────────────────
 
 def _get_intro_questions(submissions: list[Submission]) -> list[Question]:
-    """Return unique intro questions (is_intro=True) sorted by display_order."""
     seen: set[int] = set()
     intro_qs: list[Question] = []
     for s in submissions:
@@ -134,13 +113,51 @@ def _get_intro_questions(submissions: list[Submission]) -> list[Question]:
                 intro_qs.append(q)
     return sorted(intro_qs, key=lambda q: q.display_order)
 
-
-def _intro_answer_pair(ans_map: dict, q: Question) -> list[str]:
-    """Return [answer_en, answer_ar] for an intro question from an answer map."""
+def _intro_pair(ans_map: dict, q: Question) -> list[str]:
     ans = ans_map.get(q.id)
-    if not ans:
-        return ["", ""]
-    return [_answer_text(ans, "en"), _answer_text(ans, "ar")]
+    return [_answer_text(ans, "en"), _answer_text(ans, "ar")] if ans else ["", ""]
+
+
+# ── XLSX sheet builder (reused per survey group) ──────────────────────────────
+
+def _write_summary_sheet(ws, submissions: list[Submission], style_header_fn) -> None:
+    intro_qs = _get_intro_questions(submissions)
+    intro_col_hdrs: list[str] = []
+    for iq in intro_qs:
+        label = (_t(iq.translations, "en") or iq.question_key)[:50]
+        intro_col_hdrs += [f"{label} (EN)", f"{label} (AR)"]
+
+    style_header_fn(ws, SUMMARY_HEADERS + intro_col_hdrs)
+
+    for s in submissions:
+        ans_map = {a.question_id: a for a in s.answers}
+        intro_vals: list[str] = []
+        for iq in intro_qs:
+            intro_vals += _intro_pair(ans_map, iq)
+        ws.append(_summary_meta(s) + intro_vals)
+
+
+def _write_answers_sheet(ws, submissions: list[Submission], style_header_fn) -> None:
+    style_header_fn(ws, SUMMARY_HEADERS + [
+        "Intro?", "Q#", "Question Key",
+        "Question (EN)", "Question (AR)",
+        "Answer (EN)", "Answer (AR)",
+    ])
+    for s in submissions:
+        meta = _summary_meta(s)
+        for i, ans in enumerate(
+            sorted(s.answers, key=lambda a: a.question.display_order if a.question else 0),
+            start=1,
+        ):
+            q = ans.question
+            if not q:
+                continue
+            ws.append(meta + [
+                "Yes" if getattr(q, "is_intro", False) else "No",
+                i, q.question_key,
+                _t(q.translations, "en"), _t(q.translations, "ar"),
+                _answer_text(ans, "en"), _answer_text(ans, "ar"),
+            ])
 
 
 # ── Export Service ────────────────────────────────────────────────────────────
@@ -152,13 +169,14 @@ class ExportService:
     def export_csv(
         self,
         survey_id: int | None = None,
-        org_id: int | None = None,
+        org_id:    int | None = None,
+        role:      str | None = None,
+        status:    str | None = None,
     ) -> bytes:
-        submissions = _load_submissions(self.db, survey_id, org_id)
+        submissions = _load_submissions(self.db, survey_id, org_id, role, status)
 
         output = io.StringIO()
         writer = csv.writer(output)
-
         writer.writerow(DETAIL_HEADERS + [
             "Q#", "Question Key",
             "Question (EN)", "Question (AR)",
@@ -174,18 +192,14 @@ class ExportService:
             if not sorted_answers:
                 writer.writerow(meta + ["", "", "", "", "", ""])
                 continue
-
             for i, ans in enumerate(sorted_answers, start=1):
                 q = ans.question
                 if not q:
                     continue
                 writer.writerow(meta + [
-                    i,
-                    q.question_key,
-                    _t(q.translations, "en"),
-                    _t(q.translations, "ar"),
-                    _answer_text(ans, "en"),
-                    _answer_text(ans, "ar"),
+                    i, q.question_key,
+                    _t(q.translations, "en"), _t(q.translations, "ar"),
+                    _answer_text(ans, "en"), _answer_text(ans, "ar"),
                 ])
 
         return output.getvalue().encode("utf-8-sig")
@@ -193,25 +207,17 @@ class ExportService:
     def export_xlsx(
         self,
         survey_id: int | None = None,
-        org_id: int | None = None,
+        org_id:    int | None = None,
+        role:      str | None = None,
+        status:    str | None = None,
     ) -> bytes:
         import openpyxl
         from openpyxl.styles import Font, PatternFill, Alignment
 
-        submissions = _load_submissions(self.db, survey_id, org_id)
-
-        # Collect intro questions across all submissions
-        intro_qs = _get_intro_questions(submissions)
-
-        # Build dynamic intro column headers
-        # Each intro question gets two columns: label (EN) and label (AR)
-        intro_col_headers: list[str] = []
-        for iq in intro_qs:
-            label = _t(iq.translations, "en") or iq.question_key
-            label = label[:50]  # cap width
-            intro_col_headers += [f"{label} (EN)", f"{label} (AR)"]
+        submissions = _load_submissions(self.db, survey_id, org_id, role, status)
 
         wb = openpyxl.Workbook()
+        wb.remove(wb.active)  # remove default blank sheet
 
         header_fill = PatternFill("solid", fgColor="1B3A5C")
         header_font = Font(color="FFFFFF", bold=True)
@@ -225,60 +231,31 @@ class ExportService:
                 cell.font = header_font
                 cell.alignment = center
 
-        # ── Sheet 1: Summary (slim — no org/name/email, + intro Q columns) ────
-        ws1 = wb.active
-        ws1.title = "Summary"
-
-        style_header(ws1, SUMMARY_HEADERS + intro_col_headers)
-
+        # Group submissions by survey slug (or id if no slug)
+        survey_groups: dict[str, list[Submission]] = {}
         for s in submissions:
-            ans_map = {ans.question_id: ans for ans in s.answers}
-            intro_values: list[str] = []
-            for iq in intro_qs:
-                intro_values += _intro_answer_pair(ans_map, iq)
-            ws1.append(_summary_meta(s) + intro_values)
+            key = (s.survey.slug if s.survey else None) or str(s.survey_id)
+            survey_groups.setdefault(key, []).append(s)
 
-        # ── Sheet 2: Answers (Q&A detail, same slim columns as Summary) ─────────
-        ws2 = wb.create_sheet("Answers")
-        style_header(ws2, SUMMARY_HEADERS + [
-            "Intro?", "Q#", "Question Key",
-            "Question (EN)", "Question (AR)",
-            "Answer (EN)", "Answer (AR)",
-        ])
+        # One pair of sheets per survey
+        for survey_slug, group in survey_groups.items():
+            # Sheet names max 31 chars in Excel
+            prefix = survey_slug[:26]
+            ws_summary = wb.create_sheet(f"{prefix} - Sum")
+            ws_answers  = wb.create_sheet(f"{prefix} - Ans")
+            _write_summary_sheet(ws_summary, group, style_header)
+            _write_answers_sheet(ws_answers,  group, style_header)
 
-        for s in submissions:
-            meta = _summary_meta(s)
-            sorted_answers = sorted(
-                s.answers,
-                key=lambda a: a.question.display_order if a.question else 0,
-            )
-            for i, ans in enumerate(sorted_answers, start=1):
-                q = ans.question
-                if not q:
-                    continue
-                ws2.append(meta + [
-                    "Yes" if getattr(q, "is_intro", False) else "No",
-                    i,
-                    q.question_key,
-                    _t(q.translations, "en"),
-                    _t(q.translations, "ar"),
-                    _answer_text(ans, "en"),
-                    _answer_text(ans, "ar"),
-                ])
-
-        # RTL alignment: find Arabic columns by header name
-        for ws in (ws1, ws2):
-            ar_col_indices: set[int] = set()
+        # Apply RTL alignment to (AR) columns + auto-width
+        for ws in wb.worksheets:
+            ar_cols: set[int] = set()
             for cell in ws[1]:
                 if cell.value and "(AR)" in str(cell.value):
-                    ar_col_indices.add(cell.column)
+                    ar_cols.add(cell.column)
             for row in ws.iter_rows(min_row=2):
                 for cell in row:
-                    if cell.column in ar_col_indices and cell.value:
+                    if cell.column in ar_cols and cell.value:
                         cell.alignment = rtl_align
-
-        # Auto-width
-        for ws in (ws1, ws2):
             for col in ws.columns:
                 max_len = max((len(str(cell.value or "")) for cell in col), default=10)
                 ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 60)

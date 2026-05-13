@@ -59,11 +59,15 @@ def list_submissions(
 @router.get("/export/csv")
 def export_csv(
     survey_id: int | None = Query(None),
-    org_id: int | None = Query(None),
-    db: Session = Depends(get_db),
+    org_id:    int | None = Query(None),
+    role:      str | None = Query(None),
+    status:    str | None = Query(None, alias="status_filter"),
+    db: Session  = Depends(get_db),
     _: AdminUser = Depends(get_current_admin),
 ):
-    data = ExportService(db).export_csv(survey_id=survey_id, org_id=org_id)
+    data = ExportService(db).export_csv(
+        survey_id=survey_id, org_id=org_id, role=role, status=status
+    )
     return Response(
         content=data,
         media_type="text/csv",
@@ -74,11 +78,15 @@ def export_csv(
 @router.get("/export/xlsx")
 def export_xlsx(
     survey_id: int | None = Query(None),
-    org_id: int | None = Query(None),
-    db: Session = Depends(get_db),
+    org_id:    int | None = Query(None),
+    role:      str | None = Query(None),
+    status:    str | None = Query(None, alias="status_filter"),
+    db: Session  = Depends(get_db),
     _: AdminUser = Depends(get_current_admin),
 ):
-    data = ExportService(db).export_xlsx(survey_id=survey_id, org_id=org_id)
+    data = ExportService(db).export_xlsx(
+        survey_id=survey_id, org_id=org_id, role=role, status=status
+    )
     return Response(
         content=data,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

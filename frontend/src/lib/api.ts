@@ -123,9 +123,9 @@ export const adminApi = {
   // Submissions
   listSubmissions: (params?: object) => api.get('/admin/submissions', { params }),
   getSubmission: (id: number) => api.get(`/admin/submissions/${id}`),
-  exportCsv: (params?: object) =>
+  exportCsv: (params?: { survey_id?: number; role?: string; status_filter?: string }) =>
     api.get('/admin/submissions/export/csv', { params, responseType: 'blob' }),
-  exportXlsx: (params?: object) =>
+  exportXlsx: (params?: { survey_id?: number; role?: string; status_filter?: string }) =>
     api.get('/admin/submissions/export/xlsx', { params, responseType: 'blob' }),
 
   // Admin User Management (superadmin only)
