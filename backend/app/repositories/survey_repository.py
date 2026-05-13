@@ -189,7 +189,13 @@ class SurveyRepository:
             )
         ).scalar_one_or_none()
 
-    def get_questions_for_role(self, survey_slug: str, role: RespondentRole) -> list[Question]:
+    def get_questions_for_role(self, survey_slug: str, role: RespondentRole | None) -> list[Question]:
+        """Return non-intro questions visible to the given role.
+
+        role=None means 'other' — show all questions regardless of visibility rules.
+        Questions with no visibility rules are shown to every role (same as the
+        public questions endpoint behaviour).
+        """
         survey = self.get_full(survey_slug)
         if not survey:
             return []
@@ -198,9 +204,13 @@ class SurveyRepository:
             if not section.is_active:
                 continue
             for q in section.questions:
-                if not q.is_active:
+                if not q.is_active or q.is_intro:
                     continue
-                allowed_roles = [vr.role for vr in q.visibility_rules]
-                if role in allowed_roles:
+                if role is None:
                     questions.append(q)
+                else:
+                    allowed_roles = [vr.role for vr in q.visibility_rules]
+                    # No rules set → visible to everyone; rules set → check membership
+                    if not allowed_roles or role in allowed_roles:
+                        questions.append(q)
         return questions

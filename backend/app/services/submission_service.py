@@ -56,7 +56,10 @@ class SubmissionService:
     def _validate_and_save_answers(
         self, submission_id: int, survey_slug: str, role: str, answers: list[AnswerIn]
     ) -> None:
-        role_enum = RespondentRole(role)
+        try:
+            role_enum: RespondentRole | None = RespondentRole(role)
+        except ValueError:
+            role_enum = None  # "other" role: no filtering, all questions allowed
         allowed_questions = self.survey_repo.get_questions_for_role(survey_slug, role_enum)
         allowed_question_ids = {q.id for q in allowed_questions}
 
