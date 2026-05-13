@@ -239,8 +239,8 @@ class ExportService:
 
         # One pair of sheets per survey
         for survey_slug, group in survey_groups.items():
-            # Sheet names max 31 chars in Excel
-            prefix = survey_slug[:26]
+            # Excel sheet names: max 31 chars. " - Sum"/" - Ans" = 6 chars → prefix max 25
+            prefix = survey_slug[:25]
             ws_summary = wb.create_sheet(f"{prefix} - Sum")
             ws_answers  = wb.create_sheet(f"{prefix} - Ans")
             _write_summary_sheet(ws_summary, group, style_header)
