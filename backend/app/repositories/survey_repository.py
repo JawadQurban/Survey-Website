@@ -204,7 +204,7 @@ class SurveyRepository:
             if not section.is_active:
                 continue
             for q in section.questions:
-                if not q.is_active or q.is_intro:
+                if not q.is_active:
                     continue
                 if role is None:
                     questions.append(q)
