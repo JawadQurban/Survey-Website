@@ -108,6 +108,22 @@ def get_submission(
     return submission
 
 
+@router.delete("/{submission_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_submission(
+    submission_id: int,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    submission = SubmissionRepository(db).get_by_id(submission_id)
+    if not submission:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Submission not found")
+    db.delete(submission)
+    AdminRepository(db).log_action(
+        current_admin.id, "submission_deleted", "submission", str(submission_id)
+    )
+    db.commit()
+
+
 @router.post("/{submission_id}/reopen", response_model=SubmissionOut)
 def reopen_submission(
     submission_id: int,

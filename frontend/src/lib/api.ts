@@ -123,6 +123,7 @@ export const adminApi = {
   // Submissions
   listSubmissions: (params?: object) => api.get('/admin/submissions', { params }),
   getSubmission: (id: number) => api.get(`/admin/submissions/${id}`),
+  deleteSubmission: (id: number) => api.delete(`/admin/submissions/${id}`),
   exportCsv: (params?: { survey_id?: number; role?: string; status_filter?: string }) =>
     api.get('/admin/submissions/export/csv', { params, responseType: 'blob' }),
   exportXlsx: (params?: { survey_id?: number; role?: string; status_filter?: string }) =>
