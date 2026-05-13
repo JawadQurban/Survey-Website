@@ -238,9 +238,11 @@ class ExportService:
             survey_groups.setdefault(key, []).append(s)
 
         # One pair of sheets per survey
-        for survey_slug, group in survey_groups.items():
-            # Excel sheet names: max 31 chars. " - Sum"/" - Ans" = 6 chars → prefix max 25
-            prefix = survey_slug[:25]
+        for idx, (survey_slug, group) in enumerate(survey_groups.items(), start=1):
+            # Prefix with index so duplicate slugs never produce identical sheet names.
+            # Max Excel sheet name = 31 chars. " - Sum"/" - Ans" = 6 → prefix max 25.
+            # "N." prefix uses 2-3 chars, leaving 22 chars for the slug.
+            prefix = f"{idx}.{survey_slug[:22]}"[:25]
             ws_summary = wb.create_sheet(f"{prefix} - Sum")
             ws_answers  = wb.create_sheet(f"{prefix} - Ans")
             _write_summary_sheet(ws_summary, group, style_header)
