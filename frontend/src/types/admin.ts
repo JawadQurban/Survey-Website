@@ -77,6 +77,8 @@ export interface SubmissionSummary {
   survey_slug: string | null
   respondent_role: string
   respondent_email: string
+  sector: string | null
+  org_size: string | null
   status: string
   submitted_at: string | null
   created_at: string

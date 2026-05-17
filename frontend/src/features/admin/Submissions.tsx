@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Badge, statusBadgeVariant } from '@/components/ui/Badge'
@@ -11,6 +11,15 @@ import { ChevronLeft, ChevronRight, Download, Eye, Trash2, X } from 'lucide-reac
 
 const ROLE_LABELS: Record<string, string> = { ceo: 'CEO', chro: 'CHRO', ld: 'L&D', other: 'Other' }
 const PAGE_SIZES = [20, 50, 100]
+
+const KNOWN_SECTOR_LABELS: Record<string, string> = {
+  banking:         'Banking',
+  insurance:       'Insurance',
+  capital_markets: 'Capital Markets',
+  payments:        'Payments',
+  financing:       'Financing',
+  other:           'Other',
+}
 
 // ── Submission detail panel ───────────────────────────────────────────────────
 function SubmissionPanel({ submission, onClose }: { submission: SubmissionSummary; onClose: () => void }) {
@@ -112,6 +121,25 @@ export function Submissions() {
   })
   const surveys = (surveysData?.data as Survey[]) ?? []
 
+  // Build sector key → label map per survey, falling back to known defaults
+  const sectorLabelsBySurvey = useMemo(() => {
+    const map = new Map<number, Map<string, string>>()
+    for (const survey of surveys) {
+      const options = (survey as any).settings?.intro_config?.sector?.options ?? []
+      const optMap = new Map<string, string>(Object.entries(KNOWN_SECTOR_LABELS))
+      for (const opt of options) {
+        if (opt.key) optMap.set(opt.key, opt.label_en || opt.key)
+      }
+      map.set(survey.id, optMap)
+    }
+    return map
+  }, [surveys])
+
+  const resolveSector = (surveyId: number, key: string | null | undefined): string => {
+    if (!key) return '—'
+    return sectorLabelsBySurvey.get(surveyId)?.get(key) ?? KNOWN_SECTOR_LABELS[key] ?? key
+  }
+
   const { data, isLoading } = useQuery({
     queryKey: ['admin-submissions', roleFilter, statusFilter, surveyFilter, page, pageSize],
     queryFn: () => adminApi.listSubmissions({
@@ -203,7 +231,7 @@ export function Submissions() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-tfa-gray-200">
-              {['ID', 'Survey', 'Organization', 'Role', 'Email', 'Status', 'Submitted At', 'Actions'].map((h) => (
+              {['ID', 'Survey', 'Organization', 'Role', 'Sector', 'Email', 'Status', 'Submitted At', 'Actions'].map((h) => (
                 <th key={h} className="text-left py-3 px-3 text-xs font-semibold text-tfa-gray-500 uppercase tracking-wide">{h}</th>
               ))}
             </tr>
@@ -217,6 +245,7 @@ export function Submissions() {
                 <td className="py-3 px-3">
                   <Badge variant="info">{ROLE_LABELS[s.respondent_role] ?? s.respondent_role}</Badge>
                 </td>
+                <td className="py-3 px-3 text-tfa-gray-700 text-xs">{resolveSector(s.survey_id, s.sector)}</td>
                 <td className="py-3 px-3 text-tfa-gray-600">{s.respondent_email}</td>
                 <td className="py-3 px-3">
                   <Badge variant={statusBadgeVariant(s.status)}>{s.status}</Badge>

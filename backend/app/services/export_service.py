@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from sqlalchemy import select
 
 from app.models.submission import Submission, Answer
-from app.models.survey import Question, QuestionOption
+from app.models.survey import Question, QuestionOption, Survey
 
 
 # ── Translation / answer helpers ─────────────────────────────────────────────
@@ -49,6 +49,7 @@ def _load_submissions(
         select(Submission)
         .options(
             joinedload(Submission.organization),
+            joinedload(Submission.survey),
             selectinload(Submission.answers)
             .selectinload(Answer.question)
             .selectinload(Question.translations),
@@ -70,6 +71,28 @@ def _org_name(s: Submission) -> str:
     return (s.organization.name_en if s.organization else None) or s.org_name_input or ""
 
 
+_KNOWN_SECTOR_LABELS = {
+    "banking":         "Banking",
+    "insurance":       "Insurance",
+    "capital_markets": "Capital Markets",
+    "payments":        "Payments",
+    "financing":       "Financing",
+    "other":           "Other",
+}
+
+def _sector_label(s: Submission) -> str:
+    key = s.sector or ""
+    if not key:
+        return ""
+    # Resolve from the survey's saved intro_config options first
+    settings = (s.survey.settings if s.survey else None) or {}
+    for opt in settings.get("intro_config", {}).get("sector", {}).get("options", []):
+        if opt.get("key") == key:
+            return opt.get("label_en") or key
+    # Fall back to well-known defaults for older submissions
+    return _KNOWN_SECTOR_LABELS.get(key, key)
+
+
 # ── Column definitions ────────────────────────────────────────────────────────
 
 SUMMARY_HEADERS = [
@@ -79,7 +102,7 @@ SUMMARY_HEADERS = [
 
 def _summary_meta(s: Submission) -> list:
     return [
-        s.id, s.respondent_role, s.sector or "",
+        s.id, s.respondent_role, _sector_label(s),
         s.org_size or "", s.language_used,
         str(s.status),
         s.submitted_at.isoformat() if s.submitted_at else "",
@@ -94,7 +117,7 @@ def _detail_meta(s: Submission) -> list:
     return [
         s.id, _org_name(s), s.respondent_name or "",
         s.respondent_role, s.respondent_email or "",
-        s.sector or "", s.org_size or "", s.language_used,
+        _sector_label(s), s.org_size or "", s.language_used,
         str(s.status),
         s.submitted_at.isoformat() if s.submitted_at else "",
     ]
